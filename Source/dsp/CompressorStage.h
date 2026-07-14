@@ -18,6 +18,13 @@ public:
         reset();
     }
 
+    void updateSampleRate(double newFs) {
+        if (std::abs(newFs - fs) < 0.01) return;
+        fs = newFs;
+        overallscale = fs / 44100.0;
+        // Don't reset envelope state — it settles naturally
+    }
+
     void reset() {
         targetposL = targetnegL = targetposR = targetnegR = 1.0;
         cAposL = cAnegL = cBposL = cBnegL = 1.0;

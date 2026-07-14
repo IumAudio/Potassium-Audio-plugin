@@ -242,22 +242,28 @@ public:
 
     void prepareToPlay (double sampleRate, int samplesPerBlock) override
     {
+        baseSampleRate = sampleRate;
+
+        // Sync oversampling from parameter
+        if (auto* osParam = dynamic_cast<juce::AudioParameterChoice*>(apvts.getParameter(ParamIDs::overMode)))
+            oversampling.setMode (osParam->getIndex());
+
+        double effectiveRate = sampleRate * oversampling.getCurrentFactor();
         juce::dsp::ProcessSpec spec { sampleRate, (juce::uint32) samplesPerBlock, 2 };
 
         oversampling.prepare (spec);
-        inputGain.prepare   (sampleRate, samplesPerBlock);
-        compressor.prepare  (sampleRate, samplesPerBlock);
-        saturator.prepare   (sampleRate, samplesPerBlock);
-        eqStage.prepare     (sampleRate, samplesPerBlock);
-        baseSampleRate = sampleRate;
-        density.prepare     (sampleRate, samplesPerBlock);
-        limiter.prepare     (sampleRate, samplesPerBlock);
-        stereoWidth.prepare (sampleRate, samplesPerBlock);
-        outputGain.prepare  (sampleRate, samplesPerBlock);
+        inputGain.prepare   (effectiveRate, samplesPerBlock);
+        compressor.prepare  (effectiveRate, samplesPerBlock);
+        saturator.prepare   (effectiveRate, samplesPerBlock);
+        eqStage.prepare     (effectiveRate, samplesPerBlock);
+        density.prepare     (effectiveRate, samplesPerBlock);
+        limiter.prepare     (effectiveRate, samplesPerBlock);
+        stereoWidth.prepare (effectiveRate, samplesPerBlock);
+        outputGain.prepare  (effectiveRate, samplesPerBlock);
 
         setLatencySamples (oversampling.getLatencySamples());
 
-        prevOversamplingMode = -1; // force update
+        prevOversamplingMode = oversampling.getMode();
     }
 
     void releaseResources() override {}
@@ -278,6 +284,31 @@ public:
     bool acceptsMidi() const override    { return false; }
     bool producesMidi() const override   { return false; }
     double getTailLengthSeconds() const override { return 0.0; }
+
+    // ── Internal undo ─────────────────────────────────────────────────────────
+    struct UndoEntry { juce::String pid; float oldVal; float newVal; };
+    juce::Array<UndoEntry> undoStack;
+    int undoPos = -1;
+
+    void pushUndo(const juce::String& id, float oldNrm, float newNrm) {
+        undoStack.resize(undoPos + 1);
+        undoStack.add({id, oldNrm, newNrm});
+        undoPos = undoStack.size() - 1;
+    }
+    void performUndo() {
+        if (undoPos < 0 || undoPos >= undoStack.size()) return;
+        auto& e = undoStack.getReference(undoPos);
+        if (auto* p = apvts.getParameter(e.pid.toRawUTF8()))
+            p->setValueNotifyingHost(e.oldVal);
+        undoPos--;
+    }
+    void performRedo() {
+        if (undoPos + 1 < 0 || undoPos + 1 >= undoStack.size()) return;
+        undoPos++;
+        auto& e = undoStack.getReference(undoPos);
+        if (auto* p = apvts.getParameter(e.pid.toRawUTF8()))
+            p->setValueNotifyingHost(e.newVal);
+    }
 
     // ── Program ─────────────────────────────────────────────────────────────
     // ── APVTS access ────────────────────────────────────────────────────────
@@ -402,16 +433,19 @@ private:
             outputGain.setGainDB (lastOutputGain);
         }
 
-        // Oversampling mode — recalc EQ for effective sample rate
+        // Oversampling mode — recalc time/freq DSP for effective rate when mode changes
         int osMode = overModeParam->getIndex();
         if (osMode != prevOversamplingMode)
         {
             prevOversamplingMode = osMode;
             oversampling.setMode (osMode);
             setLatencySamples (oversampling.getLatencySamples());
-            // EQ coefficients depend on sample rate — recalc for oversampled rate
-            eqStage.updateSampleRate (baseSampleRate * oversampling.getCurrentFactor());
         }
+        // Always keep EQ + dynamics at the correct effective rate (no-op if unchanged)
+        double effRate = baseSampleRate * oversampling.getCurrentFactor();
+        eqStage.updateSampleRate (effRate);
+        compressor.updateSampleRate (effRate);
+        limiter.updateSampleRate (effRate);
     }
 
     void updateMeters (float sweetSpot, float grDB, float inDB)

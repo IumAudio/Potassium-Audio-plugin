@@ -37,27 +37,35 @@ public:
     void resized() override { wv->setBounds(getLocalBounds()); }
 
     void timerCallback() override {
-        // Phase 1: wait for window to be visible, then navigate to page
         if (loadDelay > 0) {
             if (--loadDelay == 0) {
                 wv->goToURL(juce::WebBrowserComponent::getResourceProviderRoot());
-                initSyncDelay = 8; // wait a few ticks for page JS to init
+                initSyncDelay = 8;
             }
             return;
         }
 
-        // Phase 2: push C++ param values → JS ONCE (overwrites JS defaults with restored state)
         if (initSyncDelay > 0) {
             if (--initSyncDelay == 0)
-                doInitSync();
+                doFullSync();
             return;
         }
 
-        // Phase 3: normal operation
-        // C++ → JS: push meters/GR to UI
+        // ── Full sync after undo/redo, or periodic when idle ──
+        if (!wasDragging) {
+            if (pendingSync || ++syncTick >= 18) {
+                pendingSync = false;
+                syncTick = 0;
+                doFullSync();
+                return; // skip poll this tick — prevent bounce-back
+            }
+        } else {
+            syncTick = 0;
+        }
+
+        // ── Normal operation ──
         doMeterSync();
 
-        // JS → C++ poll: read param values from UI, only apply if changed
         wv->evaluateJavascript("JSON.stringify(window._S)",
             [this](const juce::WebBrowserComponent::EvaluationResult& r){
                 auto* vp = r.getResult(); if (!vp) return;
@@ -67,42 +75,43 @@ public:
                 if (v.isVoid() || !v.isObject()) return;
                 juce::MessageManager::callAsync([this, v]{
                     auto safeV = [](const juce::var& v)->float{ auto d=(double)v; return std::isfinite(d)?(float)d:0; };
-                    // ── Drag tracking: one undo entry per gesture, not per poll tick ──
-                    bool isDragging = v.hasProperty("_dragging") && (bool)v["_dragging"];
-                    juce::String dp = v.hasProperty("_dragParam") ? v["_dragParam"].toString() : "";
-                    auto resolveP = [&](const juce::String& s)->juce::AudioProcessorParameter*{
-                        if(s=="push")return proc.apvts.getParameter(ParamIDs::push);
-                        if(s=="inputGain")return proc.apvts.getParameter(ParamIDs::inputGain);
-                        if(s=="limitGain")return proc.apvts.getParameter(ParamIDs::limiterThresh);
-                        if(s=="outGain")return proc.apvts.getParameter(ParamIDs::outputGain);
-                        if(s=="dark")return proc.apvts.getParameter(ParamIDs::eqLowShelf);
-                        if(s=="bright")return proc.apvts.getParameter(ParamIDs::density);
-                        if(s=="air")return proc.apvts.getParameter(ParamIDs::eqHighShelf);
-                        return nullptr;
+
+                    // ── Undo/Redo (before value sync to avoid bounce-back) ──
+                    if (v.hasProperty("_undoC")) { int c=(int)v["_undoC"]; if(c!=lastUndoCount){lastUndoCount=c; proc.performUndo(); pendingSync=true; return;} }
+                    if (v.hasProperty("_redoC")) { int c=(int)v["_redoC"]; if(c!=lastRedoCount){lastRedoCount=c; proc.performRedo(); pendingSync=true; return;} }
+
+                    // ── Value-change tracking for undo ──
+                    // A param "changing" across poll cycles → drag in progress.
+                    // When it stops changing → push ONE undo entry (oldVal → newVal).
+                    // No dependency on JS event timing. Fast drags & slow drags → 1 entry each.
+                    auto trackUndo = [&](const juce::String& pid, juce::AudioProcessorParameter* x, float newNrm) {
+                        bool isChanging = std::abs(x->getValue() - newNrm) > 0.001f;
+                        if (isChanging) {
+                            if (!changingParams[pid]) {          // change just started
+                                changingParams[pid] = true;
+                                oldParamValues[pid] = x->getValue(); // snapshot old
+                            }
+                            x->setValueNotifyingHost(newNrm);
+                        } else {
+                            if (changingParams[pid]) {           // change just stopped
+                                changingParams[pid] = false;
+                                float oldV = oldParamValues[pid];
+                                float newV = x->getValue();
+                                if (std::abs(newV - oldV) > 0.0001f)
+                                    proc.pushUndo(pid, oldV, newV);
+                            }
+                        }
                     };
-                    auto* activeP = resolveP(dp);
-                    if(isDragging && !wasDragging && activeP)
-                        activeP->beginChangeGesture();
-                    else if(!isDragging && wasDragging && lastActiveDragP)
-                        lastActiveDragP->endChangeGesture();
-                    wasDragging = isDragging;
-                    if(isDragging && activeP) lastActiveDragP = activeP;
 
                     auto set=[&](auto* id,float val){
                         auto* x=proc.apvts.getParameter(id);
-                        if(x&&std::abs(x->getValue()-x->convertTo0to1(val))>0.001f){
-                            if(!isDragging) x->beginChangeGesture();
-                            x->setValueNotifyingHost(x->convertTo0to1(val));
-                            if(!isDragging) x->endChangeGesture();
-                        }
+                        if(x) trackUndo(id, x, x->convertTo0to1(val));
                     };
                     auto setB=[&](auto* id,bool b){
                         auto* x=proc.apvts.getParameter(id);
-                        if(x&&((x->getValue()>0.5f)!=b)){
-                            if(!isDragging) x->beginChangeGesture();
-                            x->setValueNotifyingHost(b?1.f:0.f);
-                            if(!isDragging) x->endChangeGesture();
-                        }
+                        if(!x) return;
+                        float nrm = b?1.f:0.f;
+                        if((x->getValue()>0.5f)!=(nrm>0.5f)) trackUndo(id, x, nrm);
                     };
                     if(v.hasProperty("push"))set(ParamIDs::push,safeV(v["push"]));
                     if(v.hasProperty("inputGain"))set(ParamIDs::inputGain,safeV(v["inputGain"]));
@@ -116,11 +125,7 @@ public:
                         if(os){
                             float osv=0.f; auto s=v["overMode"].toString();
                             if(s=="2x")osv=0.333f;else if(s=="4x")osv=0.667f;else if(s=="8x")osv=1.f;
-                            if(std::abs(os->getValue()-osv)>0.001f){
-                                os->beginChangeGesture();
-                                os->setValueNotifyingHost(osv);
-                                os->endChangeGesture();
-                            }
+                            trackUndo(ParamIDs::overMode, os, osv);
                         }
                     }
                     if(v.hasProperty("bp")){
@@ -131,14 +136,11 @@ public:
                         if(bp.hasProperty("limit"))setB(ParamIDs::limitBypass,bp["limit"]);
                         if(bp.hasProperty("all"))setB(ParamIDs::bypass,bp["all"]);
                     }
-                    // Zoom → resize window + persist
                     if (v.hasProperty("zoom")) {
                         float z = safeV(v["zoom"]);
                         if (std::abs(z - proc.uiZoom) > 0.005f) {
                             proc.uiZoom = z;
-                            int w = (int)std::round(680.0f * z);
-                            int h = (int)std::round(380.0f * z);
-                            setSize(w, h);
+                            setSize((int)std::round(680.0f*z), (int)std::round(380.0f*z));
                         }
                     }
                 });
@@ -146,8 +148,7 @@ public:
         );
     }
 
-    // Push C++ parameter values → JS after page init (overwrites JS defaults)
-    void doInitSync() {
+    void doFullSync() {
         auto pv = [&](const char* id) -> float {
             auto* p = proc.apvts.getRawParameterValue(id);
             return p ? p->load() : 0.0f;
@@ -156,7 +157,6 @@ public:
             auto* p = proc.apvts.getParameter(id);
             return p ? p->getValue() : 0.0f;
         };
-
         juce::String js;
         js << "var S=window._S;"
            << "S.push=" << pv(ParamIDs::push) << ";"
@@ -172,7 +172,6 @@ public:
            << "S.bp.stereo=" << (pn(ParamIDs::stereoBypass)>0.5f?"true":"false") << ";"
            << "S.bp.limit=" << (pn(ParamIDs::limitBypass)>0.5f?"true":"false") << ";"
            << "S.bp.all=" << (pn(ParamIDs::bypass)>0.5f?"true":"false") << ";";
-        // overMode: convert normalized index back to string
         float om = pn(ParamIDs::overMode);
         if (om < 0.25f)      js << "S.overMode='Off';";
         else if (om < 0.5f)  js << "S.overMode='2x';";
@@ -208,8 +207,12 @@ private:
     std::vector<std::byte> htmlBytes;
     int loadDelay = 10;
     int initSyncDelay = 0;
-    bool wasDragging = false;
-    juce::AudioProcessorParameter* lastActiveDragP = nullptr;
+    int syncTick = 0;
+    bool wasDragging = false; // still used by periodic sync (don't sync during drag)
+    int lastUndoCount = 0, lastRedoCount = 0;
+    bool pendingSync = false;
+    std::map<juce::String, bool, std::less<juce::String>> changingParams;
+    std::map<juce::String, float, std::less<juce::String>> oldParamValues;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PotassiumAudioEditor)
 };

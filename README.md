@@ -1,6 +1,6 @@
 # Potassium — 混音总线处理器
 
-[![Version](https://img.shields.io/badge/version-1.0.2-gold)](https://github.com/IumAudio/Potassium-Audio-plugin/releases)
+[![Version](https://img.shields.io/badge/version-1.0.4-gold)](https://github.com/IumAudio/Potassium-Audio-plugin/releases)
 [![Platform](https://img.shields.io/badge/platform-Windows%2010%2F11%20x64-blue)](https://github.com/IumAudio/Potassium-Audio-plugin/releases)
 [![Format](https://img.shields.io/badge/format-VST3-purple)](https://github.com/IumAudio/Potassium-Audio-plugin/releases)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
@@ -123,6 +123,19 @@ cmake --build /c/PotassiumBuild --config Release
 ---
 
 ## 更新日志
+
+### v1.0.4 (2026-07-14)
+- 新增：内置撤销/重做（UNDO/REDO 按钮 + Ctrl+Z/Y 快捷键），按鼠标操作分组
+- 修复：EQ/Push/Input/Output/Limit 参数保存后重启丢失
+- 修复：EQ 分频点随过采样倍数漂移 — 每帧按有效采样率校准
+- 修复：压缩器/限制器时域参数按有效采样率计算（之前按基频算，时间常数偏差 4-16x）
+- UI：EQ 模块加大 + EQ 标签 + 版本号 + 外框 + 撤销按钮区边框
+
+### v1.0.3 (2026-07-14)
+- 修复：宿主撤销（Ctrl+Z）真正生效 — 空闲时 C++ 参数同步回 WebView，撤销不再被轮询覆盖
+- 修复：EQ 分频点随过采样倍数漂移 — 每帧强制按有效采样率重算系数
+- 修复：高 IMD 失真 — 压缩器/限制器时域参数现按有效采样率计算（之前按基频算，实际跑在过采样率下，时间常数快 4-16 倍）
+- 改进：过采样 2x/4x/8x 升级为 FIR equiripple 滤波器（阻带衰减更好，混叠更低）
 
 ### v1.0.2 (2026-07-14)
 - 修复：过采样开启后 EQ 分频点偏移（系数按基频采样率算，现已按过采样后的有效采样率重算）

@@ -14,12 +14,22 @@ public:
 
     void prepare(double sampleRate, int blockSize) {
         fs = (float)sampleRate;
+        lastBlockSize = blockSize;
         lookahead = juce::jmax(4, (int)(0.002f * fs));
         bufSize = (lookahead + blockSize + 4) * 2;
         delayBuf.assign(bufSize, 0.0f);
         writePos = 0;
         peakEnv = 0.0f;
         grSmooth = 1.0f;
+    }
+
+    void updateSampleRate(double newFs) {
+        if (std::abs(newFs - fs) < 0.01) return;
+        fs = (float)newFs;
+        lookahead = juce::jmax(4, (int)(0.002f * fs));
+        int newBufSize = (lookahead + lastBlockSize + 4) * 2;
+        if (newBufSize > (int)delayBuf.size())
+            delayBuf.assign(newBufSize, 0.0f);
     }
 
     void reset() {
@@ -102,7 +112,7 @@ private:
     float releaseCoeff = 0.999f;
     float peakEnv = 0.0f, grSmooth = 1.0f;
     mutable float grPeak = 0.0f;
-    int lookahead = 0, bufSize = 0, writePos = 0;
+    int lookahead = 0, bufSize = 0, writePos = 0, lastBlockSize = 256;
     std::vector<float> delayBuf;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(LimiterStage)
 };

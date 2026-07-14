@@ -7,7 +7,7 @@
 <style>
 :root{--bg:#0d0d14;--panel:#141420;--accent:#c9a050;--purple:#7b5ea7;--text:#e0dfe6;--dim:#666680;--meter-lo:#4ecdc4;--meter-hi:#e94560;--gr:#d4845a;--white:#f0edf5;--arc:#2a2a3a}
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;width:680px;height:380px;overflow:hidden;user-select:none;position:relative;transform-origin:0 0;transform:scale(1.324)}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;width:680px;height:380px;overflow:hidden;user-select:none;position:relative;transform-origin:0 0;transform:scale(1.324);border:1px solid #2a2a3a;border-radius:4px}
 /* ARC */
 svg.arc{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none}
 /* INPUT METER */
@@ -25,12 +25,13 @@ svg.arc{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:non
 .out-fill{position:absolute;bottom:0;width:100%;border-radius:8px;background:linear-gradient(0deg,var(--meter-lo),var(--meter-hi));height:0;transition:height .1s}
 .out-num{font-size:11px;font-weight:600;color:var(--white);margin-bottom:6px}
 /* EQ */
-.eq-wrap{position:absolute;left:68px;top:42px;display:flex;flex-direction:column;gap:10px}
-.eq-row{display:flex;align-items:center;gap:6px}
-.eq-name{font-size:10px;color:var(--dim);width:40px;text-align:right;text-transform:uppercase;letter-spacing:1px}
-.eq-track{width:80px;height:6px;background:var(--panel);border-radius:3px;cursor:pointer}
+.eq-label{position:absolute;left:148px;top:120px;font-size:12px;color:var(--dim);letter-spacing:2px;text-transform:uppercase}
+.eq-wrap{position:absolute;left:58px;top:42px;display:flex;flex-direction:column;gap:12px}
+.eq-row{display:flex;align-items:center;gap:8px}
+.eq-name{font-size:11px;color:var(--dim);width:44px;text-align:right;text-transform:uppercase;letter-spacing:1px}
+.eq-track{width:96px;height:7px;background:var(--panel);border-radius:3px;cursor:pointer}
 .eq-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--purple));border-radius:3px;width:0;transition:width .05s}
-.eq-db{font-size:9px;color:var(--dim);width:30px}
+.eq-db{font-size:10px;color:var(--dim);width:30px}
 /* PUSH */
 .push-wrap{position:absolute;left:226px;top:20px;width:230px;height:230px;display:flex;align-items:center;justify-content:center}
 .push-ring{position:absolute;width:196px;height:196px;border-radius:50%;border:3px solid var(--arc)}
@@ -64,6 +65,7 @@ svg.arc{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:non
 /* BRAND */
 .brand{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);font-size:13px;color:var(--dim);letter-spacing:6px;text-transform:uppercase}
 .brand span{color:var(--accent);font-size:15px}
+.ver{position:absolute;bottom:10px;left:14px;font-size:8px;color:var(--dim);letter-spacing:1px}
 .elem{position:absolute;right:12px;bottom:8px;font-size:10px;color:var(--dim);letter-spacing:1px}
 .elem b{color:var(--accent);font-size:14px}
 /* Periodic table card - bottom right */
@@ -87,6 +89,9 @@ svg.arc{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:non
 .scale-btn{font-size:8px;color:var(--dim);padding:2px 8px;border:1px solid transparent;border-radius:3px;cursor:pointer;text-align:center;transition:all .15s;letter-spacing:1px}
 .scale-btn:hover{border-color:var(--dim);color:var(--text)}
 .scale-btn.on{color:var(--accent);border-color:var(--accent);background:rgba(201,160,80,.08)}
+.undo-wrap{position:absolute;right:190px;bottom:130px;display:flex;flex-direction:column;gap:4px;border:1px solid var(--arc);border-radius:4px;padding:6px 4px 4px 4px}
+.undo-btn{font-size:8px;color:var(--dim);padding:2px 8px;border:1px solid transparent;border-radius:3px;cursor:pointer;text-align:center;transition:all .15s;letter-spacing:1px}
+.undo-btn:hover{border-color:var(--dim);color:var(--text)}
 </style>
 </head>
 <body>
@@ -104,6 +109,7 @@ svg.arc{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:non
   <div class="out-meter"><div class="out-fill" id="outFill"></div></div>
 </div>
 
+<div class="eq-label">EQ</div>
 <div class="eq-wrap">
   <div class="eq-row"><span class="eq-name">Dark</span><div class="eq-track" id="darkT"><div class="eq-fill" id="darkF"></div></div><span class="eq-db" id="darkV">0.0</span></div>
   <div class="eq-row"><span class="eq-name">Bright</span><div class="eq-track" id="brightT"><div class="eq-fill" id="brightF"></div></div><span class="eq-db" id="brightVal">0.0</span></div>
@@ -136,15 +142,17 @@ svg.arc{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:non
 </div>
 
 <div class="brand">Ium <span>K</span> Audio</div>
+<div class="ver">v1.0.4</div>
 <div class="elem">19 <b>K</b> 39.098</div>
 <div class="os-wrap"><div class="os-label">OVER</div><div class="os-btn on" data-os="Off">Off</div><div class="os-btn" data-os="2x">2x</div><div class="os-btn" data-os="4x">4x</div><div class="os-btn" data-os="8x">8x</div></div>
 <div class="scale-wrap"><div class="os-label">ZOOM</div><div class="scale-btn" data-scale="0.993">75</div><div class="scale-btn on" data-scale="1.324">100</div><div class="scale-btn" data-scale="1.655">125</div><div class="scale-btn" data-scale="2.648">200</div></div>
+<div class="undo-wrap"><div class="os-label">EDIT</div><div class="undo-btn" id="undoBtn">UNDO</div><div class="undo-btn" id="redoBtn">REDO</div></div>
 
 <div class="pt-card"><div class="pt-num">19</div><div class="pt-sym">K</div><div class="pt-name">POTASSIUM</div><div class="pt-el">Alkali Metal</div><div class="pt-weight">39.098</div><div class="pt-flame"></div></div>
 
 <script>
 (function(){
-var S={push:100,inputGain:0,limitGain:3,outGain:0,dark:0,bright:0,air:0,inPeak:-60,outPeak:-60,sweet:false,compGR:0,limGR:0,overMode:'4x',zoom:1.324,bp:{comp:false,drive:false,eq:false,stereo:false,limit:false,all:false},_dragging:false,_dragParam:''};
+var S={push:100,inputGain:0,limitGain:3,outGain:0,dark:0,bright:0,air:0,inPeak:-60,outPeak:-60,sweet:false,compGR:0,limGR:0,overMode:'4x',zoom:1.324,bp:{comp:false,drive:false,eq:false,stereo:false,limit:false,all:false},_dragging:false,_dragParam:'',_undoC:0,_redoC:0};
 var smooth={inPeak:-60,outPeak:-60,compGR:0,limGR:0};
 var dragTarget=null,dragStartY=0,dragStartX=0,dragVal=0;
 
@@ -230,6 +238,14 @@ document.querySelectorAll('.bp-btn').forEach(function(el){el.addEventListener('c
 document.querySelectorAll('.os-btn').forEach(function(el){el.addEventListener('click',function(){document.querySelectorAll('.os-btn').forEach(function(b){b.classList.remove('on')});el.classList.add('on');S.overMode=el.dataset.os;render();bridgeNotify()})});
 // Scale selector
 document.querySelectorAll('.scale-btn').forEach(function(el){el.addEventListener('click',function(){document.querySelectorAll('.scale-btn').forEach(function(b){b.classList.remove('on')});el.classList.add('on');S.zoom=parseFloat(el.dataset.scale);document.body.style.transform='scale('+S.zoom+')';render();bridgeNotify()})});
+
+// Undo/Redo — counter-based: C++ poll detects count changes (reliable, no timing issues)
+document.getElementById('undoBtn').addEventListener('click',function(){S._undoC++});
+document.getElementById('redoBtn').addEventListener('click',function(){S._redoC++});
+document.addEventListener('keydown',function(e){
+  if(e.ctrlKey&&e.key==='z'&&!e.shiftKey){e.preventDefault();S._undoC++}
+  if(e.ctrlKey&&(e.key==='y'||(e.key==='z'&&e.shiftKey))){e.preventDefault();S._redoC++}
+});
 
 // Bridge to C++: try multiple patterns for JUCE 8.0.14
 // Create native bridge once

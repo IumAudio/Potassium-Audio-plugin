@@ -25,9 +25,8 @@ void PotassiumAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juc
     auto block   = juce::dsp::AudioBlock<float>(buffer);
     auto osBlock = oversampling.processSamplesUp(block);
 
-    // ── Signal chain ──
+    // ── Signal chain (all inside oversampling) ──
     // InputGain → ButterComp2 → Drive → SmoothEQ3 → StereoFX → Limiter → OutputGain
-
     inputGain.process(osBlock);
     if (!*compBypassParam)   compressor.process(osBlock);
     if (!*driveBypassParam)  saturator.process(osBlock);
