@@ -7,7 +7,7 @@
 <style>
 :root{--bg:#0d0d14;--panel:#141420;--accent:#c9a050;--purple:#7b5ea7;--text:#e0dfe6;--dim:#666680;--meter-lo:#4ecdc4;--meter-hi:#e94560;--gr:#d4845a;--white:#f0edf5;--arc:#2a2a3a}
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;width:680px;height:380px;overflow:hidden;user-select:none;position:relative;transform-origin:0 0;transform:scale(1.324)}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;width:680px;height:380px;overflow:hidden;user-select:none;position:relative;transform-origin:0 0}
 /* ARC */
 svg.arc{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none}
 /* INPUT METER */
@@ -25,7 +25,7 @@ svg.arc{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:non
 .out-fill{position:absolute;bottom:0;width:100%;border-radius:8px;background:linear-gradient(0deg,var(--meter-lo),var(--meter-hi));height:0;transition:height .1s}
 .out-num{font-size:11px;font-weight:600;color:var(--white);margin-bottom:6px}
 /* EQ */
-.eq-wrap{position:absolute;left:68px;top:42px;display:flex;flex-direction:column;gap:10px}
+.eq-wrap{position:absolute;left:54px;top:42px;display:flex;flex-direction:column;gap:10px}
 .eq-row{display:flex;align-items:center;gap:6px}
 .eq-name{font-size:10px;color:var(--dim);width:40px;text-align:right;text-transform:uppercase;letter-spacing:1px}
 .eq-track{width:80px;height:6px;background:var(--panel);border-radius:3px;cursor:pointer}
@@ -83,10 +83,6 @@ svg.arc{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:non
 .os-btn:hover{border-color:var(--dim);color:var(--text)}
 .os-btn.on{color:var(--accent);border-color:var(--accent);background:rgba(201,160,80,.08)}
 .os-label{font-size:7px;color:var(--dim);text-align:center;letter-spacing:2px;margin-bottom:2px}
-.scale-wrap{position:absolute;right:190px;bottom:30px;display:flex;flex-direction:column;gap:2px}
-.scale-btn{font-size:8px;color:var(--dim);padding:2px 8px;border:1px solid transparent;border-radius:3px;cursor:pointer;text-align:center;transition:all .15s;letter-spacing:1px}
-.scale-btn:hover{border-color:var(--dim);color:var(--text)}
-.scale-btn.on{color:var(--accent);border-color:var(--accent);background:rgba(201,160,80,.08)}
 </style>
 </head>
 <body>
@@ -138,20 +134,17 @@ svg.arc{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:non
 <div class="brand">Ium <span>K</span> Audio</div>
 <div class="elem">19 <b>K</b> 39.098</div>
 <div class="os-wrap"><div class="os-label">OVER</div><div class="os-btn on" data-os="Off">Off</div><div class="os-btn" data-os="2x">2x</div><div class="os-btn" data-os="4x">4x</div><div class="os-btn" data-os="8x">8x</div></div>
-<div class="scale-wrap"><div class="os-label">ZOOM</div><div class="scale-btn" data-scale="0.993">75</div><div class="scale-btn on" data-scale="1.324">100</div><div class="scale-btn" data-scale="1.655">125</div><div class="scale-btn" data-scale="2.648">200</div></div>
 
 <div class="pt-card"><div class="pt-num">19</div><div class="pt-sym">K</div><div class="pt-name">POTASSIUM</div><div class="pt-el">Alkali Metal</div><div class="pt-weight">39.098</div><div class="pt-flame"></div></div>
 
 <script>
 (function(){
-var S={push:100,inputGain:0,limitGain:3,outGain:0,dark:0,bright:0,air:0,inPeak:-60,outPeak:-60,sweet:false,compGR:0,limGR:0,overMode:'4x',zoom:1.324,bp:{comp:false,drive:false,eq:false,stereo:false,limit:false,all:false},_dragging:false,_dragParam:''};
+var S={push:100,inputGain:0,limitGain:3,outGain:0,dark:0,bright:0,air:0,inPeak:-60,outPeak:-60,sweet:false,compGR:0,limGR:0,overMode:'4x',bp:{comp:false,drive:false,eq:false,stereo:false,limit:false,all:false}};
 var smooth={inPeak:-60,outPeak:-60,compGR:0,limGR:0};
 var dragTarget=null,dragStartY=0,dragStartX=0,dragVal=0;
 
 function lerp(a,b,t){return a+(b-a)*t;}
 function render(){
-  // body zoom (persisted across save/load)
-  document.body.style.transform='scale('+S.zoom+')';
   // smooth
   var s=0.12;
   smooth.inPeak=lerp(smooth.inPeak,S.inPeak,s);
@@ -191,24 +184,23 @@ function render(){
 
   document.querySelectorAll('.bp-btn').forEach(function(el){var k=el.dataset.bp;if(S.bp[k])el.classList.add('on');else el.classList.remove('on')});
   document.querySelectorAll('.os-btn').forEach(function(el){el.classList.remove('on');if(el.dataset.os===S.overMode)el.classList.add('on')});
-  document.querySelectorAll('.scale-btn').forEach(function(el){el.classList.remove('on');if(Math.abs(parseFloat(el.dataset.scale)-S.zoom)<0.01)el.classList.add('on')});
 }
 
 // PUSH knob
-document.getElementById('pushKnob').addEventListener('mousedown',function(e){dragTarget='push';dragStartY=e.clientY;dragVal=S.push;S._dragging=true;S._dragParam='push';e.preventDefault()});
+document.getElementById('pushKnob').addEventListener('mousedown',function(e){dragTarget='push';dragStartY=e.clientY;dragVal=S.push;e.preventDefault()});
 document.getElementById('pushKnob').addEventListener('dblclick',function(){S.push=100;render()});
 
 // EQ faders
 var eqKeys=['dark','bright','air'];
 ['darkT','brightT','airT'].forEach(function(id,idx){
-  document.getElementById(id).addEventListener('mousedown',function(e){dragTarget='eq'+idx;dragStartX=e.clientX;dragVal=S[eqKeys[idx]];S._dragging=true;S._dragParam=eqKeys[idx];e.preventDefault()});
+  document.getElementById(id).addEventListener('mousedown',function(e){dragTarget='eq'+idx;dragStartX=e.clientX;dragVal=S[eqKeys[idx]];e.preventDefault()});
   document.getElementById(id).addEventListener('dblclick',function(){S[eqKeys[idx]]=0;render()});
 });
 
 // Bottom knobs
 var knobKeys=['inputGain','limitGain','outGain'];
 [{id:'inKnobR',lo:-12,hi:12,def:0},{id:'limKnobR',lo:0,hi:12,def:3},{id:'outKnobR',lo:-24,hi:24,def:0}].forEach(function(k,idx){
-  document.getElementById(k.id).addEventListener('mousedown',function(e){dragTarget='knob'+idx;dragStartY=e.clientY;dragVal=S[knobKeys[idx]];S._dragging=true;S._dragParam=knobKeys[idx];e.preventDefault()});
+  document.getElementById(k.id).addEventListener('mousedown',function(e){dragTarget='knob'+idx;dragStartY=e.clientY;dragVal=S[knobKeys[idx]];e.preventDefault()});
   document.getElementById(k.id).addEventListener('dblclick',function(){S[knobKeys[idx]]=k.def;render()});
 });
 
@@ -221,15 +213,13 @@ window.addEventListener('mousemove',function(e){
   else if(dragTarget[0]==='k'){var idx=parseInt(dragTarget[4]); var rng=[[-12,12],[0,12],[-24,24]]; delta=-(e.clientY-dragStartY)*sens*0.1; S[knobKeys[idx]]=Math.max(rng[idx][0],Math.min(rng[idx][1],dragVal+delta))}
   render();bridgeNotify();
 });
-window.addEventListener('mouseup',function(){dragTarget=null;S._dragging=false});
+window.addEventListener('mouseup',function(){dragTarget=null});
 
 // Bypass
 document.querySelectorAll('.bp-btn').forEach(function(el){el.addEventListener('click',function(){var k=el.dataset.bp;S.bp[k]=!S.bp[k];if(k==='all')for(var x in S.bp)S.bp[x]=S.bp.all;render();bridgeNotify()})});
 
 // OS selector
 document.querySelectorAll('.os-btn').forEach(function(el){el.addEventListener('click',function(){document.querySelectorAll('.os-btn').forEach(function(b){b.classList.remove('on')});el.classList.add('on');S.overMode=el.dataset.os;render();bridgeNotify()})});
-// Scale selector
-document.querySelectorAll('.scale-btn').forEach(function(el){el.addEventListener('click',function(){document.querySelectorAll('.scale-btn').forEach(function(b){b.classList.remove('on')});el.classList.add('on');S.zoom=parseFloat(el.dataset.scale);document.body.style.transform='scale('+S.zoom+')';render();bridgeNotify()})});
 
 // Bridge to C++: try multiple patterns for JUCE 8.0.14
 // Create native bridge once

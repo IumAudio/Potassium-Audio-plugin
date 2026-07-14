@@ -1,8 +1,8 @@
 # Potassium — 混音总线处理器
 
-[![Version](https://img.shields.io/badge/version-1.0.2-gold)](https://github.com/IumAudio/Potassium-Audio-plugin/releases)
-[![Platform](https://img.shields.io/badge/platform-Windows%2010%2F11%20x64-blue)](https://github.com/IumAudio/Potassium-Audio-plugin/releases)
-[![Format](https://img.shields.io/badge/format-VST3-purple)](https://github.com/IumAudio/Potassium-Audio-plugin/releases)
+[![Version](https://img.shields.io/badge/version-1.0.1-gold)](https://github.com/IumAudio/Potassium/releases)
+[![Platform](https://img.shields.io/badge/platform-Windows%2010%2F11%20x64-blue)](https://github.com/IumAudio/Potassium/releases)
+[![Format](https://img.shields.io/badge/format-VST3-purple)](https://github.com/IumAudio/Potassium/releases)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 > 灵感源自 The God Particle 插件。一键让你的混音总线更有凝聚力、更有冲击力。
@@ -123,11 +123,6 @@ cmake --build /c/PotassiumBuild --config Release
 ---
 
 ## 更新日志
-
-### v1.0.2 (2026-07-14)
-- 修复：过采样开启后 EQ 分频点偏移（系数按基频采样率算，现已按过采样后的有效采样率重算）
-- 修复：宿主撤销（Ctrl+Z）无反应 — 拖拽手势现在跨多个轮询周期合并为一个撤销条目
-- UI：EQ 模块微调右移
 
 ### v1.0.1 (2026-07-14)
 - 修复：状态保存（VST3 参数持久化）

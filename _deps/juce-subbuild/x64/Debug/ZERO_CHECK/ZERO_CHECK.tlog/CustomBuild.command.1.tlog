@@ -1,0 +1,10 @@
+^C:\H\音混\IUM AUDIO\VIBE CODING\POTASSIUM\_DEPS\JUCE-SUBBUILD\CMAKEFILES\0C2A7C4B10A63537E0BC744DB3C4E2BB\GENERATE.STAMP.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" "-SC:/H/音混/Ium Audio/vibe coding/Potassium/_deps/juce-subbuild" "-BC:/H/音混/Ium Audio/vibe coding/Potassium/_deps/juce-subbuild" --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file "C:/H/音混/Ium Audio/vibe coding/Potassium/_deps/juce-subbuild/juce-populate.slnx"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

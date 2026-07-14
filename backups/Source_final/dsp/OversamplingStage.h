@@ -26,7 +26,6 @@ public:
     int getLatencySamples() const noexcept {
         return currentMode == 0 ? 0 : oversamplers[currentMode]->getLatencyInSamples();
     }
-    int getCurrentFactor() const noexcept { static const int f[]={1,2,4,8}; return f[currentMode]; }
 
     juce::dsp::AudioBlock<float> processSamplesUp(juce::dsp::AudioBlock<float>& block) {
         return (currentMode == 0) ? block : oversamplers[currentMode]->processSamplesUp(block);

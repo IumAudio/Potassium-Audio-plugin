@@ -67,20 +67,41 @@ public:
                 if (v.isVoid() || !v.isObject()) return;
                 juce::MessageManager::callAsync([this, v]{
                     auto safeV = [](const juce::var& v)->float{ auto d=(double)v; return std::isfinite(d)?(float)d:0; };
+                    // ── Drag tracking: one undo entry per gesture, not per poll tick ──
+                    bool isDragging = v.hasProperty("_dragging") && (bool)v["_dragging"];
+                    juce::String dp = v.hasProperty("_dragParam") ? v["_dragParam"].toString() : "";
+                    auto resolveP = [&](const juce::String& s)->juce::AudioProcessorParameter*{
+                        if(s=="push")return proc.apvts.getParameter(ParamIDs::push);
+                        if(s=="inputGain")return proc.apvts.getParameter(ParamIDs::inputGain);
+                        if(s=="limitGain")return proc.apvts.getParameter(ParamIDs::limiterThresh);
+                        if(s=="outGain")return proc.apvts.getParameter(ParamIDs::outputGain);
+                        if(s=="dark")return proc.apvts.getParameter(ParamIDs::eqLowShelf);
+                        if(s=="bright")return proc.apvts.getParameter(ParamIDs::density);
+                        if(s=="air")return proc.apvts.getParameter(ParamIDs::eqHighShelf);
+                        return nullptr;
+                    };
+                    auto* activeP = resolveP(dp);
+                    if(isDragging && !wasDragging && activeP)
+                        activeP->beginChangeGesture();
+                    else if(!isDragging && wasDragging && lastActiveDragP)
+                        lastActiveDragP->endChangeGesture();
+                    wasDragging = isDragging;
+                    if(isDragging && activeP) lastActiveDragP = activeP;
+
                     auto set=[&](auto* id,float val){
                         auto* x=proc.apvts.getParameter(id);
                         if(x&&std::abs(x->getValue()-x->convertTo0to1(val))>0.001f){
-                            x->beginChangeGesture();
+                            if(!isDragging) x->beginChangeGesture();
                             x->setValueNotifyingHost(x->convertTo0to1(val));
-                            x->endChangeGesture();
+                            if(!isDragging) x->endChangeGesture();
                         }
                     };
                     auto setB=[&](auto* id,bool b){
                         auto* x=proc.apvts.getParameter(id);
                         if(x&&((x->getValue()>0.5f)!=b)){
-                            x->beginChangeGesture();
+                            if(!isDragging) x->beginChangeGesture();
                             x->setValueNotifyingHost(b?1.f:0.f);
-                            x->endChangeGesture();
+                            if(!isDragging) x->endChangeGesture();
                         }
                     };
                     if(v.hasProperty("push"))set(ParamIDs::push,safeV(v["push"]));
@@ -187,6 +208,8 @@ private:
     std::vector<std::byte> htmlBytes;
     int loadDelay = 10;
     int initSyncDelay = 0;
+    bool wasDragging = false;
+    juce::AudioProcessorParameter* lastActiveDragP = nullptr;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PotassiumAudioEditor)
 };

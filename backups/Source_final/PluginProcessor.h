@@ -15,7 +15,6 @@
 namespace ParamIDs
 {
     inline constexpr const char* inputGain      = "inputGain";
-    inline constexpr const char* push           = "push";
     inline constexpr const char* compThreshold  = "compThreshold";
     inline constexpr const char* compRelease    = "compRelease";
     inline constexpr const char* compCharacter = "compCharacter";
@@ -77,35 +76,45 @@ public:
                                                                .withLabel ("dB")
                                                                .withCategory (AudioProcessorParameter::inputGain)));
 
-        // ── Push (master knob) ────────────────────────────────────────────
-        layout.add (std::make_unique<AudioParameterFloat> (ParamIDs::push, "Push",
-                                                           NormalisableRange<float> (0.0f, 200.0f, 1.0f), 100.0f,
+        // ── Compressor ─────────────────────────────────────────────────────
+        layout.add (std::make_unique<AudioParameterFloat> (ParamIDs::compThreshold, "Comp",
+                                                           NormalisableRange<float> (0.0f, 0.8f, 0.01f), 0.5f,
                                                            AudioParameterFloatAttributes{}
-                                                               .withLabel ("%")
+                                                               .withCategory (AudioProcessorParameter::genericParameter)));
+
+        // ── Drive ─────────────────────────────────────────────────────────
+        layout.add (std::make_unique<AudioParameterFloat> (ParamIDs::satDrive, "Drive",
+                                                           NormalisableRange<float> (0.0f, 1.0f, 0.01f), 0.2f,
+                                                           AudioParameterFloatAttributes{}
                                                                .withCategory (AudioProcessorParameter::genericParameter)));
 
         // ── EQ ─────────────────────────────────────────────────────────────
-        layout.add (std::make_unique<AudioParameterFloat> (ParamIDs::eqLowShelf, "Dark",
-                                                           NormalisableRange<float> (0.0f, 6.0f, 0.1f), 0.0f,
+        layout.add (std::make_unique<AudioParameterFloat> (ParamIDs::eqLowShelf, "EQ Low",
+                                                           NormalisableRange<float> (-6.0f, 6.0f, 0.1f), 0.0f,
                                                            AudioParameterFloatAttributes{}
                                                                .withLabel ("dB")
                                                                .withCategory (AudioProcessorParameter::genericParameter)));
-        layout.add (std::make_unique<AudioParameterFloat> (ParamIDs::density, "Bright",
-                                                           NormalisableRange<float> (0.0f, 6.0f, 0.1f), 0.0f,
+        layout.add (std::make_unique<AudioParameterFloat> (ParamIDs::density, "EQ Mid",
+                                                           NormalisableRange<float> (-6.0f, 6.0f, 0.1f), 0.0f,
                                                            AudioParameterFloatAttributes{}
                                                                .withLabel ("dB")
                                                                .withCategory (AudioProcessorParameter::genericParameter)));
-        layout.add (std::make_unique<AudioParameterFloat> (ParamIDs::eqHighShelf, "Air",
-                                                           NormalisableRange<float> (0.0f, 6.0f, 0.1f), 0.0f,
+        layout.add (std::make_unique<AudioParameterFloat> (ParamIDs::eqHighShelf, "EQ High",
+                                                           NormalisableRange<float> (-6.0f, 6.0f, 0.1f), 0.0f,
                                                            AudioParameterFloatAttributes{}
                                                                .withLabel ("dB")
                                                                .withCategory (AudioProcessorParameter::genericParameter)));
 
         // ── Limiter ────────────────────────────────────────────────────────
         layout.add (std::make_unique<AudioParameterFloat> (ParamIDs::limiterThresh, "Limit Gain",
-                                                           NormalisableRange<float> (0.0f, 12.0f, 0.1f), 3.0f,
+                                                           NormalisableRange<float> (0.0f, 12.0f, 0.1f), 0.0f,
                                                            AudioParameterFloatAttributes{}
                                                                .withLabel ("dB")
+                                                               .withCategory (AudioProcessorParameter::genericParameter)));
+        // ── Stereo Width ───────────────────────────────────────────────────
+        layout.add (std::make_unique<AudioParameterFloat> (ParamIDs::stereoWide, "Wide",
+                                                           NormalisableRange<float> (0.0f, 1.0f, 0.01f), 0.0f,
+                                                           AudioParameterFloatAttributes{}
                                                                .withCategory (AudioProcessorParameter::genericParameter)));
 
         // ── Output ─────────────────────────────────────────────────────────
@@ -168,42 +177,42 @@ public:
 
     void getStateInformation (juce::MemoryBlock& destData) override
     {
-        juce::XmlElement root ("Potassium");
-        for (int i = 0; i < getNumParameters(); ++i)
-        {
-            auto* p = getParameters()[i];
-            juce::String key;
-            if (auto* idp = dynamic_cast<juce::AudioProcessorParameterWithID*>(p))
-                key = idp->paramID;
-            else
-                key = "p" + juce::String (i);
-            root.setAttribute (key, p->getValue());
+        auto state = apvts.copyState();
+        std::unique_ptr<juce::XmlElement> xml (state.createXml());
+        auto* root = new juce::XmlElement ("PotassiumState");
+        root->setAttribute ("program", currentProgram);
+        root->addChildElement (xml.release());
+        // Save program names
+        auto* progs = new juce::XmlElement ("Programs");
+        for (int i = 0; i < programNames.size(); ++i) {
+            auto* p = new juce::XmlElement ("Prog");
+            p->setAttribute ("name", programNames[i]);
+            p->setAttribute ("state", programStates[i]);
+            progs->addChildElement (p);
         }
-        root.setAttribute ("uiZoom", uiZoom);   // persist UI scale
-        copyXmlToBinary (root, destData);
+        root->addChildElement (progs);
+        copyXmlToBinary (*root, destData);
     }
 
     void setStateInformation (const void* data, int sizeInBytes) override
     {
-        auto xml = getXmlFromBinary (data, sizeInBytes);
-        if (xml == nullptr) return;
+        std::unique_ptr<juce::XmlElement> root (getXmlFromBinary (data, sizeInBytes));
+        if (root == nullptr) return;
 
-        for (int i = 0; i < getNumParameters(); ++i)
-        {
-            auto* p = getParameters()[i];
-            juce::String key;
-            if (auto* idp = dynamic_cast<juce::AudioProcessorParameterWithID*>(p))
-                key = idp->paramID;
-            else
-                key = "p" + juce::String (i);
-
-            if (xml->hasAttribute (key))
-                p->setValueNotifyingHost ((float) xml->getDoubleAttribute (key));
+        // Load programs
+        programNames.clear(); programStates.clear();
+        if (auto* progs = root->getChildByName ("Programs")) {
+            for (auto* p = progs->getFirstChildElement(); p != nullptr; p = p->getNextElement()) {
+                programNames.add (p->getStringAttribute ("name", "Preset"));
+                programStates.add (p->getStringAttribute ("state", ""));
+            }
         }
+        currentProgram = root->getIntAttribute ("program", 0);
+        currentProgram = juce::jlimit (0, juce::jmax (0, programNames.size() - 1), currentProgram);
 
-        // Restore UI scale
-        if (xml->hasAttribute ("uiZoom"))
-            uiZoom = (float) xml->getDoubleAttribute ("uiZoom");
+        // Restore APVTS
+        if (auto* apvtsXml = root->getChildByName ("Parameters"))
+            apvts.replaceState (juce::ValueTree::fromXml (*apvtsXml));
     }
 
     // ── Programs ────────────────────────────────────────────────────────────
@@ -249,7 +258,6 @@ public:
         compressor.prepare  (sampleRate, samplesPerBlock);
         saturator.prepare   (sampleRate, samplesPerBlock);
         eqStage.prepare     (sampleRate, samplesPerBlock);
-        baseSampleRate = sampleRate;
         density.prepare     (sampleRate, samplesPerBlock);
         limiter.prepare     (sampleRate, samplesPerBlock);
         stereoWidth.prepare (sampleRate, samplesPerBlock);
@@ -269,11 +277,6 @@ public:
     bool hasEditor() const override { return true; }
 
     // ── Identity ────────────────────────────────────────────────────────────
-    float getInputRMS()  const noexcept { return inputGain.getRMSdB(); }
-    float getOutputRMS() const noexcept { return outputPeakDB; }
-    float getLimiterGR() const noexcept { return limiter.getGainReductionDB(); }
-    float getCompressorGR() const noexcept { return compressor.getGR(); }
-
     const juce::String getName() const override { return "Potassium"; }
     bool acceptsMidi() const override    { return false; }
     bool producesMidi() const override   { return false; }
@@ -282,7 +285,6 @@ public:
     // ── Program ─────────────────────────────────────────────────────────────
     // ── APVTS access ────────────────────────────────────────────────────────
     juce::AudioProcessorValueTreeState apvts;
-    float uiZoom = 1.324f;  // persisted UI scale, synced with editor
 
 private:
     // ── DSP modules ─────────────────────────────────────────────────────────
@@ -297,11 +299,9 @@ private:
     OutputGainStage    outputGain;
 
     int prevOversamplingMode = -1;
-    double baseSampleRate = 44100.0;
 
     // ── Parameter attachments ──────────────────────────────────────────────
     juce::AudioParameterFloat*   inputGainParam      = nullptr;
-    juce::AudioParameterFloat*   pushParam           = nullptr;
     juce::AudioParameterFloat*   compThresholdParam  = nullptr;
     juce::AudioParameterFloat*   compReleaseParam    = nullptr;
     juce::AudioParameterFloat*   compCharacterParam  = nullptr;
@@ -334,7 +334,6 @@ private:
         if (inputGainParam != nullptr) return; // already initialized
 
         inputGainParam      = (juce::AudioParameterFloat*)   apvts.getParameter (ParamIDs::inputGain);
-        pushParam           = (juce::AudioParameterFloat*)   apvts.getParameter (ParamIDs::push);
         compThresholdParam  = (juce::AudioParameterFloat*)   apvts.getParameter (ParamIDs::compThreshold);
         compReleaseParam    = (juce::AudioParameterFloat*)   apvts.getParameter (ParamIDs::compRelease);
         compCharacterParam  = (juce::AudioParameterFloat*)   apvts.getParameter (ParamIDs::compCharacter);
@@ -363,38 +362,32 @@ private:
     {
         initParams();
 
-        // Push master knob → directly sets Comp/Drive/Wide DSP
-        float p = pushParam->get();
-        float t = p / 100.0f;
-        float compVal, driveVal, wideVal;
-        if (t <= 1.0f) {
-            compVal = t * 0.40f; driveVal = t * 0.50f; wideVal = t * 0.50f;
-        } else {
-            float s = t - 1.0f;
-            compVal = 0.40f + s * 0.40f; driveVal = 0.50f + s * 0.50f; wideVal = 0.50f + s * 0.50f;
-        }
-        compressor.setThreshold(compVal);
-        compressor.setRelease(0.5f);
-        compressor.setCharacter(0.5f);
-        compressor.setMakeup(0.0f);
-        saturator.setDrive(driveVal);
-        saturator.setTrim(0.0f);
-        stereoWidth.setWidth(wideVal);
-
         if (inputGainParam->get() != lastInputGain)
         {
             lastInputGain = inputGainParam->get();
             inputGain.setGainDB (lastInputGain);
         }
 
-        // EQ: 0..+6 dB → SmoothEQ3 0.5..1.0
+        compressor.setThreshold  (compThresholdParam->get());
+        compressor.setRelease    (0.5f);
+        compressor.setCharacter  (0.5f);
+        compressor.setMakeup     (0.0f);
+
+        // Drive: PurestDrive standalone
+        saturator.setDrive      (satDriveParam->get());
+        saturator.setCharacter  (satCharacterParam ? satCharacterParam->get() : 0.5f);
+        saturator.setTrim       (0.0f);
+
+        // SmoothEQ3 3-band: map -6..+6 dB → 0..1 (0.5 = flat)
         eqStage.setLowShelfDB   (eqLowShelfParam->get() / 12.0f + 0.5f);
-        eqStage.setMidBand      (densityParam->get() / 12.0f + 0.5f);
         eqStage.setHighShelfDB  (eqHighShelfParam->get() / 12.0f + 0.5f);
+        eqStage.setMidBand      (densityParam->get() / 12.0f + 0.5f);
 
         limiter.setInputGain    (limiterThreshParam->get());
         limiter.setRelease      (0.3f);
         limiter.setCeiling      (-0.3f);
+
+        stereoWidth.setWidth     (stereoWideParam->get());
 
         if (outputGainParam->get() != lastOutputGain)
         {
@@ -402,15 +395,13 @@ private:
             outputGain.setGainDB (lastOutputGain);
         }
 
-        // Oversampling mode — recalc EQ for effective sample rate
+        // Oversampling mode
         int osMode = overModeParam->getIndex();
         if (osMode != prevOversamplingMode)
         {
             prevOversamplingMode = osMode;
             oversampling.setMode (osMode);
             setLatencySamples (oversampling.getLatencySamples());
-            // EQ coefficients depend on sample rate — recalc for oversampled rate
-            eqStage.updateSampleRate (baseSampleRate * oversampling.getCurrentFactor());
         }
     }
 
@@ -430,8 +421,6 @@ private:
 
     float lastInputGain  = 0.0f;
     float lastOutputGain = 0.0f;
-    float lastPush = 100.0f;
-    mutable float outputPeakDB = -60.0f;
 
     juce::StringArray programNames;
     juce::StringArray programStates;

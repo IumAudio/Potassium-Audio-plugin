@@ -29,6 +29,7 @@ namespace ParamIDs
     inline constexpr const char* stereoWide     = "stereoWide";
     inline constexpr const char* outputGain     = "outputGain";
     inline constexpr const char* overMode       = "overMode";
+    inline constexpr const char* uiScale        = "uiScale";
     inline constexpr const char* bypass         = "bypass";
     inline constexpr const char* compBypass     = "compBypass";
     inline constexpr const char* driveBypass    = "driveBypass";
@@ -121,6 +122,13 @@ public:
                                                              AudioParameterChoiceAttributes{}
                                                                  .withCategory (AudioProcessorParameter::genericParameter)));
 
+        // ── UI Scale ───────────────────────────────────────────────────────
+        layout.add (std::make_unique<AudioParameterFloat> (ParamIDs::uiScale, "UI Scale",
+                                                           NormalisableRange<float> (75.0f, 200.0f, 1.0f), 132.0f,
+                                                           AudioParameterFloatAttributes{}
+                                                               .withLabel ("%")
+                                                               .withCategory (AudioProcessorParameter::genericParameter)));
+
         // ── Bypasses ──────────────────────────────────────────────────────
         layout.add (std::make_unique<AudioParameterBool> (ParamIDs::compBypass, "Byp Comp", false,
                                                            AudioParameterBoolAttributes{}
@@ -168,42 +176,42 @@ public:
 
     void getStateInformation (juce::MemoryBlock& destData) override
     {
-        juce::XmlElement root ("Potassium");
-        for (int i = 0; i < getNumParameters(); ++i)
-        {
-            auto* p = getParameters()[i];
-            juce::String key;
-            if (auto* idp = dynamic_cast<juce::AudioProcessorParameterWithID*>(p))
-                key = idp->paramID;
-            else
-                key = "p" + juce::String (i);
-            root.setAttribute (key, p->getValue());
+        auto state = apvts.copyState();
+        std::unique_ptr<juce::XmlElement> xml (state.createXml());
+        auto* root = new juce::XmlElement ("PotassiumState");
+        root->setAttribute ("program", currentProgram);
+        root->addChildElement (xml.release());
+        // Save program names
+        auto* progs = new juce::XmlElement ("Programs");
+        for (int i = 0; i < programNames.size(); ++i) {
+            auto* p = new juce::XmlElement ("Prog");
+            p->setAttribute ("name", programNames[i]);
+            p->setAttribute ("state", programStates[i]);
+            progs->addChildElement (p);
         }
-        root.setAttribute ("uiZoom", uiZoom);   // persist UI scale
-        copyXmlToBinary (root, destData);
+        root->addChildElement (progs);
+        copyXmlToBinary (*root, destData);
     }
 
     void setStateInformation (const void* data, int sizeInBytes) override
     {
-        auto xml = getXmlFromBinary (data, sizeInBytes);
-        if (xml == nullptr) return;
+        std::unique_ptr<juce::XmlElement> root (getXmlFromBinary (data, sizeInBytes));
+        if (root == nullptr) return;
 
-        for (int i = 0; i < getNumParameters(); ++i)
-        {
-            auto* p = getParameters()[i];
-            juce::String key;
-            if (auto* idp = dynamic_cast<juce::AudioProcessorParameterWithID*>(p))
-                key = idp->paramID;
-            else
-                key = "p" + juce::String (i);
-
-            if (xml->hasAttribute (key))
-                p->setValueNotifyingHost ((float) xml->getDoubleAttribute (key));
+        // Load programs
+        programNames.clear(); programStates.clear();
+        if (auto* progs = root->getChildByName ("Programs")) {
+            for (auto* p = progs->getFirstChildElement(); p != nullptr; p = p->getNextElement()) {
+                programNames.add (p->getStringAttribute ("name", "Preset"));
+                programStates.add (p->getStringAttribute ("state", ""));
+            }
         }
+        currentProgram = root->getIntAttribute ("program", 0);
+        currentProgram = juce::jlimit (0, juce::jmax (0, programNames.size() - 1), currentProgram);
 
-        // Restore UI scale
-        if (xml->hasAttribute ("uiZoom"))
-            uiZoom = (float) xml->getDoubleAttribute ("uiZoom");
+        // Restore APVTS
+        if (auto* apvtsXml = root->getChildByName ("Parameters"))
+            apvts.replaceState (juce::ValueTree::fromXml (*apvtsXml));
     }
 
     // ── Programs ────────────────────────────────────────────────────────────
@@ -249,7 +257,6 @@ public:
         compressor.prepare  (sampleRate, samplesPerBlock);
         saturator.prepare   (sampleRate, samplesPerBlock);
         eqStage.prepare     (sampleRate, samplesPerBlock);
-        baseSampleRate = sampleRate;
         density.prepare     (sampleRate, samplesPerBlock);
         limiter.prepare     (sampleRate, samplesPerBlock);
         stereoWidth.prepare (sampleRate, samplesPerBlock);
@@ -282,7 +289,6 @@ public:
     // ── Program ─────────────────────────────────────────────────────────────
     // ── APVTS access ────────────────────────────────────────────────────────
     juce::AudioProcessorValueTreeState apvts;
-    float uiZoom = 1.324f;  // persisted UI scale, synced with editor
 
 private:
     // ── DSP modules ─────────────────────────────────────────────────────────
@@ -297,7 +303,6 @@ private:
     OutputGainStage    outputGain;
 
     int prevOversamplingMode = -1;
-    double baseSampleRate = 44100.0;
 
     // ── Parameter attachments ──────────────────────────────────────────────
     juce::AudioParameterFloat*   inputGainParam      = nullptr;
@@ -402,15 +407,13 @@ private:
             outputGain.setGainDB (lastOutputGain);
         }
 
-        // Oversampling mode — recalc EQ for effective sample rate
+        // Oversampling mode
         int osMode = overModeParam->getIndex();
         if (osMode != prevOversamplingMode)
         {
             prevOversamplingMode = osMode;
             oversampling.setMode (osMode);
             setLatencySamples (oversampling.getLatencySamples());
-            // EQ coefficients depend on sample rate — recalc for oversampled rate
-            eqStage.updateSampleRate (baseSampleRate * oversampling.getCurrentFactor());
         }
     }
 

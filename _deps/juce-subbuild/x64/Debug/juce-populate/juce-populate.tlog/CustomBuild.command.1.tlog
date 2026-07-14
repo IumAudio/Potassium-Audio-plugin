@@ -1,0 +1,150 @@
+^C:\H\音混\IUM AUDIO\VIBE CODING\POTASSIUM\_DEPS\JUCE-SUBBUILD\CMAKEFILES\FE64F3E0DF52CCC9C87B62515D37CED8\JUCE-POPULATE-MKDIR.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -Dcfgdir=/Debug -P "C:/H/音混/Ium Audio/vibe coding/Potassium/_deps/juce-subbuild/juce-populate-prefix/tmp/juce-populate-mkdirs.cmake"
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch "C:/H/音混/Ium Audio/vibe coding/Potassium/_deps/juce-subbuild/juce-populate-prefix/src/juce-populate-stamp/Debug/juce-populate-mkdir"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\H\音混\IUM AUDIO\VIBE CODING\POTASSIUM\_DEPS\JUCE-SUBBUILD\CMAKEFILES\FE64F3E0DF52CCC9C87B62515D37CED8\JUCE-POPULATE-DOWNLOAD.RULE
+setlocal
+cd "C:\H\音混\Ium Audio\vibe coding\Potassium\_deps"
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -DCMAKE_MESSAGE_LOG_LEVEL=VERBOSE -P "C:/H/音混/Ium Audio/vibe coding/Potassium/_deps/juce-subbuild/juce-populate-prefix/tmp/juce-populate-gitclone.cmake"
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch "C:/H/音混/Ium Audio/vibe coding/Potassium/_deps/juce-subbuild/juce-populate-prefix/src/juce-populate-stamp/Debug/juce-populate-download"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\H\音混\IUM AUDIO\VIBE CODING\POTASSIUM\_DEPS\JUCE-SUBBUILD\CMAKEFILES\FE64F3E0DF52CCC9C87B62515D37CED8\JUCE-POPULATE-UPDATE.RULE
+setlocal
+cd "C:\H\音混\Ium Audio\vibe coding\Potassium\_deps\juce-src"
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -Dcan_fetch=YES -DCMAKE_MESSAGE_LOG_LEVEL=VERBOSE -P "C:/H/音混/Ium Audio/vibe coding/Potassium/_deps/juce-subbuild/juce-populate-prefix/tmp/juce-populate-gitupdate.cmake"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\H\音混\IUM AUDIO\VIBE CODING\POTASSIUM\_DEPS\JUCE-SUBBUILD\CMAKEFILES\FE64F3E0DF52CCC9C87B62515D37CED8\JUCE-POPULATE-PATCH.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E echo_append
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch "C:/H/音混/Ium Audio/vibe coding/Potassium/_deps/juce-subbuild/juce-populate-prefix/src/juce-populate-stamp/Debug/juce-populate-patch"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\H\音混\IUM AUDIO\VIBE CODING\POTASSIUM\_DEPS\JUCE-SUBBUILD\CMAKEFILES\FE64F3E0DF52CCC9C87B62515D37CED8\JUCE-POPULATE-CONFIGURE.RULE
+setlocal
+cd "C:\H\音混\Ium Audio\vibe coding\Potassium\_deps\juce-build"
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E echo_append
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch "C:/H/音混/Ium Audio/vibe coding/Potassium/_deps/juce-subbuild/juce-populate-prefix/src/juce-populate-stamp/Debug/juce-populate-configure"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\H\音混\IUM AUDIO\VIBE CODING\POTASSIUM\_DEPS\JUCE-SUBBUILD\CMAKEFILES\FE64F3E0DF52CCC9C87B62515D37CED8\JUCE-POPULATE-BUILD.RULE
+setlocal
+cd "C:\H\音混\Ium Audio\vibe coding\Potassium\_deps\juce-build"
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E echo_append
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch "C:/H/音混/Ium Audio/vibe coding/Potassium/_deps/juce-subbuild/juce-populate-prefix/src/juce-populate-stamp/Debug/juce-populate-build"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\H\音混\IUM AUDIO\VIBE CODING\POTASSIUM\_DEPS\JUCE-SUBBUILD\CMAKEFILES\FE64F3E0DF52CCC9C87B62515D37CED8\JUCE-POPULATE-INSTALL.RULE
+setlocal
+cd "C:\H\音混\Ium Audio\vibe coding\Potassium\_deps\juce-build"
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E echo_append
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch "C:/H/音混/Ium Audio/vibe coding/Potassium/_deps/juce-subbuild/juce-populate-prefix/src/juce-populate-stamp/Debug/juce-populate-install"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\H\音混\IUM AUDIO\VIBE CODING\POTASSIUM\_DEPS\JUCE-SUBBUILD\CMAKEFILES\FE64F3E0DF52CCC9C87B62515D37CED8\JUCE-POPULATE-TEST.RULE
+setlocal
+cd "C:\H\音混\Ium Audio\vibe coding\Potassium\_deps\juce-build"
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E echo_append
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch "C:/H/音混/Ium Audio/vibe coding/Potassium/_deps/juce-subbuild/juce-populate-prefix/src/juce-populate-stamp/Debug/juce-populate-test"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\H\音混\IUM AUDIO\VIBE CODING\POTASSIUM\_DEPS\JUCE-SUBBUILD\CMAKEFILES\FD44D6F76EC0E0C5FE4EAFA03B74D971\JUCE-POPULATE-COMPLETE.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E make_directory "C:/H/音混/Ium Audio/vibe coding/Potassium/_deps/juce-subbuild/CMakeFiles/Debug"
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch "C:/H/音混/Ium Audio/vibe coding/Potassium/_deps/juce-subbuild/CMakeFiles/Debug/juce-populate-complete"
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch "C:/H/音混/Ium Audio/vibe coding/Potassium/_deps/juce-subbuild/juce-populate-prefix/src/juce-populate-stamp/Debug/juce-populate-done"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\H\音混\IUM AUDIO\VIBE CODING\POTASSIUM\_DEPS\JUCE-SUBBUILD\CMAKEFILES\0C2A7C4B10A63537E0BC744DB3C4E2BB\JUCE-POPULATE.RULE
+setlocal
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\H\音混\IUM AUDIO\VIBE CODING\POTASSIUM\_DEPS\JUCE-SUBBUILD\CMAKELISTS.TXT
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" "-SC:/H/音混/Ium Audio/vibe coding/Potassium/_deps/juce-subbuild" "-BC:/H/音混/Ium Audio/vibe coding/Potassium/_deps/juce-subbuild" --check-stamp-file "C:/H/音混/Ium Audio/vibe coding/Potassium/_deps/juce-subbuild/CMakeFiles/generate.stamp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
