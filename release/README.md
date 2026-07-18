@@ -1,6 +1,6 @@
 # Potassium — 混音总线处理器
 
-[![Version](https://img.shields.io/badge/version-1.0.6-gold)](https://github.com/IumAudio/Potassium-Audio-plugin/releases)
+[![Version](https://img.shields.io/badge/version-1.0.7-gold)](https://github.com/IumAudio/Potassium-Audio-plugin/releases)
 [![Platform](https://img.shields.io/badge/platform-Windows%2010%2F11%20x64-blue)](https://github.com/IumAudio/Potassium-Audio-plugin/releases)
 [![Format](https://img.shields.io/badge/format-VST3-purple)](https://github.com/IumAudio/Potassium-Audio-plugin/releases)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
@@ -124,6 +124,12 @@ cmake --build /c/PotassiumBuild --config Release
 
 ## 更新日志
 
+### v1.0.7 (2026-07-18)
+- UI：粒子特效加亮增强，对比度提升
+- UI：右键菜单覆盖 WebView 默认菜单，提供 Refresh UI 选项
+- UI：撤回模块右移，布局微调
+- 文档：补录 ADAA 抗锯齿与立体声拓宽模块更新说明
+
 ### v1.0.6 (2026-07-18)
 - UI：弧线为界上下分层底色，上方加深与下方渐变形成对比
 - UI：Push 旋钮后方增加相位相关粒子显示，随立体声相位差动态变化
@@ -140,6 +146,8 @@ cmake --build /c/PotassiumBuild --config Release
 
 ### v1.0.4 (2026-07-14)
 - 新增：内置撤销/重做（UNDO/REDO 按钮 + Ctrl+Z/Y 快捷键），按鼠标操作分组
+- 新增：饱和器 ADAA 一阶抗锯齿，降低波形塑形产生的混叠失真
+- 新增：立体声拓宽模块 Side 通道高频搁架增强，保留原饱和特性
 - 修复：EQ/Push/Input/Output/Limit 参数保存后重启丢失
 - 修复：EQ 分频点随过采样倍数漂移
 - 修复：压缩器/限制器时域参数按过采样有效采样率计算（之前按基频算，时间常数偏差）

@@ -113,9 +113,13 @@ svg.arc{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:non
 .scale-btn{font-size:8px;color:var(--dim);padding:2px 8px;border:1px solid transparent;border-radius:3px;cursor:pointer;text-align:center;transition:all .15s;letter-spacing:1px}
 .scale-btn:hover{border-color:var(--dim);color:var(--text)}
 .scale-btn.on{color:var(--accent);border-color:var(--accent);background:rgba(201,160,80,.08)}
-.undo-wrap{position:absolute;right:190px;bottom:130px;display:flex;flex-direction:column;gap:4px;border:1px solid var(--arc);border-radius:4px;padding:6px 4px 4px 4px;z-index:1}
+.undo-wrap{position:absolute;right:176px;bottom:130px;display:flex;flex-direction:column;gap:4px;border:1px solid var(--arc);border-radius:4px;padding:6px 4px 4px 4px;z-index:1}
 .undo-btn{font-size:8px;color:var(--dim);padding:2px 8px;border:1px solid transparent;border-radius:3px;cursor:pointer;text-align:center;transition:all .15s;letter-spacing:1px}
 .undo-btn:hover{border-color:var(--dim);color:var(--text)}
+/* ── Right-click context menu ──────────────────────────────────────── */
+.ctx-menu{position:absolute;display:none;z-index:99;background:var(--panel);border:1px solid var(--arc);border-radius:4px;padding:4px 0;min-width:120px;box-shadow:0 4px 12px rgba(0,0,0,.4)}
+.ctx-item{padding:6px 14px;font-size:10px;color:var(--dim);cursor:pointer;letter-spacing:1px;transition:all .12s}
+.ctx-item:hover{color:var(--white);background:rgba(201,160,80,.1)}
 </style>
 </head>
 <body>
@@ -196,13 +200,15 @@ svg.arc{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:non
 </div>
 
 <div class="brand">Ium Audio</div>
-<div class="ver">v1.0.6</div>
+<div class="ver">v1.0.7</div>
 <div class="elem">19 <b>K</b> 39.098</div>
 <div class="os-wrap"><div class="os-label">OVER</div><div class="os-btn on" data-os="Off">Off</div><div class="os-btn" data-os="2x">2x</div><div class="os-btn" data-os="4x">4x</div><div class="os-btn" data-os="8x">8x</div></div>
 <div class="scale-wrap"><div class="os-label">ZOOM</div><div class="scale-btn" data-scale="0.993">75</div><div class="scale-btn on" data-scale="1.324">100</div><div class="scale-btn" data-scale="1.655">125</div><div class="scale-btn" data-scale="2.648">200</div></div>
 <div class="undo-wrap"><div class="os-label">EDIT</div><div class="undo-btn" id="undoBtn">UNDO</div><div class="undo-btn" id="redoBtn">REDO</div></div>
 
 <div class="pt-card"><div class="pt-num">19</div><div class="pt-sym">K</div><div class="pt-name">POTASSIUM</div><div class="pt-el">Alkali Metal</div><div class="pt-weight">39.098</div><div class="pt-flame"></div></div>
+
+<div class="ctx-menu" id="ctxMenu"><div class="ctx-item" id="ctxRefresh">Refresh UI</div></div>
 
 <script>
 (function(){
@@ -313,6 +319,27 @@ render();
 window._S=S;
 window._render=render;
 
+// ── Right-click context menu ──────────────────────────────────────────
+(function(){
+  var menu=document.getElementById('ctxMenu');
+  var refresh=document.getElementById('ctxRefresh');
+  document.body.addEventListener('contextmenu',function(e){
+    e.preventDefault();
+    var x=e.clientX,y=e.clientY;
+    var rect=document.body.getBoundingClientRect();
+    menu.style.display='block';
+    menu.style.left=(x-rect.left)+'px';
+    menu.style.top=(y-rect.top)+'px';
+  });
+  document.addEventListener('click',function(e){
+    if(!menu.contains(e.target))menu.style.display='none';
+  });
+  refresh.addEventListener('click',function(){
+    menu.style.display='none';
+    location.reload();
+  });
+})();
+
 // ── Goniometer particle display (phase-correlation scatter) ─────────
 (function(){
   var c=document.getElementById('particleC');
@@ -348,12 +375,12 @@ window._render=render;
       d.life-=.008;
       if(d.life<=0){dots.splice(i,1);continue}
       var dist=Math.sqrt((d.x-cx)*(d.x-cx)+(d.y-cy)*(d.y-cy));
-      var alpha=d.life*.35;
-      if(dist>88)alpha*=.3;
+      var alpha=d.life*.50;
+      if(dist>88)alpha*=.35;
       // Potassium flame: purple→lilac, brighter near center
       var hue=265+(dist/88)*20;
-      var sat=55-(dist/88)*20;
-      var lit=68-(dist/88)*15;
+      var sat=65-(dist/88)*15;
+      var lit=75-(dist/88)*10;
       ctx.beginPath();
       ctx.arc(d.x,d.y,d.size,0,Math.PI*2);
       ctx.fillStyle='hsla('+hue+','+sat+'%,'+lit+'%,'+alpha.toFixed(3)+')';
