@@ -13,6 +13,10 @@ void PotassiumAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juc
     updateParameters();
 
     if (*bypassParam) {
+        // Run empty oversampling chain to preserve latency
+        auto block = juce::dsp::AudioBlock<float>(buffer);
+        auto osBlock = oversampling.processSamplesUp(block);
+        oversampling.processSamplesDown(block);
         updateMeters(0.0f, 0.0f, -60.0f);
         return;
     }

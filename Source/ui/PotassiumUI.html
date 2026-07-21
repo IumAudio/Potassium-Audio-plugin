@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=680">
 <title>Potassium</title>
 <style>
-:root{--bg:#10101a;--panel:#18182a;--accent:#c9a050;--purple:#7b5ea7;--text:#eae8ef;--dim:#8e8ea8;--meter-lo:#4ecdc4;--meter-hi:#e94560;--gr:#d4845a;--white:#f5f2f8;--arc:#2e2e42;--bar:#1e1e30}
+:root{--bg:#10101a;--panel:#18182a;--accent:#c9a050;--purple:#7b5ea7;--text:#f2f0f6;--dim:#9a9ab2;--meter-lo:#4ecdc4;--meter-hi:#e94560;--gr:#d4845a;--white:#faf8fc;--arc:#34344a;--bar:#242438}
 *{margin:0;padding:0;box-sizing:border-box}
 body{
   background:
@@ -43,6 +43,10 @@ svg.arc{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:non
 .sweet-box.on{opacity:1}
 .sweet-label{font-size:7px;color:var(--accent);margin-top:4px;letter-spacing:1px;opacity:0;transition:opacity .3s}
 .sweet-label.on{opacity:1}
+.start-box{position:absolute;left:3px;right:3px;border:2px solid #5080cc;border-radius:3px;opacity:0;transition:opacity .3s}
+.start-box.on{opacity:1}
+.start-label{font-size:8px;color:#5080cc;margin-top:2px;letter-spacing:1px;opacity:0;font-weight:600;transition:opacity .3s}
+.start-label.on{opacity:1}
 /* ── OUTPUT METER ─────────────────────────────────────────────────────── */
 .out-wrap{position:absolute;right:108px;top:18px;display:flex;flex-direction:column;align-items:center;z-index:1}
 .out-meter{width:16px;height:152px;background:var(--panel);border-radius:8px;overflow:hidden;position:relative;border:1px solid rgba(255,255,255,.28)}
@@ -155,12 +159,12 @@ svg.arc{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:non
   <p>Input Gain &rarr; Compressor &rarr; EQ &rarr; [Oversampling] Saturator &rarr; Stereo Width &rarr; Limiter &rarr; Output Gain</p>
   <h3>Gain Staging 使用建议</h3>
   <p>本插件内置增益分级系统。推荐 <b>Top-Down Mix</b> 工作流：</p>
-  <p>1. 从 <b>Kick</b> 开始独奏，调整输入增益使峰值电平落在 <b>-6dB</b> 附近</p>
-  <p>2. 电平数值在 -6dB 左右会<b>亮黄或紫色</b>，以此作为参考</p>
+  <p>1. 从 <b>Kick</b> 开始独奏，调整输入增益使电平进入 <b>Start 区间</b>（电平条中央 1/2 处，蓝色指示）</p>
+  <p>2. 以此为基础逐轨平衡，最终总线的 RMS 电平进入<b>甜点区间</b>时数值亮黄或紫色</p>
   <p>3. 以 Kick 为基准逐轨平衡，最终总线的 RMS 电平控制在 <b>-6dB 附近</b></p>
   <p>4. 甜点区间内插件响应最佳，RMS 数值变黄/紫色，Peak 数值在 -10dB 变蓝/绿色即为达到理想工作点</p>
   <h3>参数</h3>
-  <p><b>Push</b> 0–200% 主控旋钮 · <b>Dark</b> 0–6dB 低频 · <b>Bright</b> 0–6dB 中频 · <b>Air</b> 0–6dB 高频</p>
+  <p><b>Push</b> 0–200% 主控旋钮 · <b>Dark</b> 0–3dB 低频 · <b>Bright</b> 0–3dB 中频 · <b>Air</b> 0–3dB 高频</p>
   <p><b>Input</b> ±12dB · <b>Limit</b> 0–12dB · <b>Output</b> ±24dB · <b>Over</b> Off/2x/4x/8x</p>
   <h3>快捷键</h3>
   <p><b>Ctrl+Z</b> 撤销 · <b>Ctrl+Y</b> 重做 · <b>双击</b> 旋钮/推子归零 · <b>右键</b> 刷新UI</p>
@@ -181,10 +185,11 @@ svg.arc{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:non
 <svg class="arc" viewBox="0 0 680 380">
   <defs>
     <linearGradient id="arcUnder" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#d4b040" stop-opacity="0.22"/>
-      <stop offset="20%" stop-color="#d4b040" stop-opacity="0.16"/>
-      <stop offset="45%" stop-color="#c9a050" stop-opacity="0.08"/>
-      <stop offset="70%" stop-color="#7b5ea7" stop-opacity="0.04"/>
+      <stop offset="0%" stop-color="#e0b830" stop-opacity="0.28"/>
+      <stop offset="15%" stop-color="#e0b830" stop-opacity="0.22"/>
+      <stop offset="35%" stop-color="#d4a830" stop-opacity="0.14"/>
+      <stop offset="55%" stop-color="#7b5ea7" stop-opacity="0.06"/>
+      <stop offset="80%" stop-color="#3a2a50" stop-opacity="0.03"/>
       <stop offset="100%" stop-color="transparent" stop-opacity="0"/>
     </linearGradient>
   </defs>
@@ -200,8 +205,9 @@ svg.arc{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:non
 <div class="in-wrap">
   <div class="in-num" id="inNumRMS">-60.0</div>
   <div class="in-pk" id="inNumPk">-60.0</div>
-  <div class="in-meter" style="position:relative"><div class="in-fill" id="inFill"></div><div class="sweet-box" id="sweetBox" style="top:25px;height:25px"></div></div>
+  <div class="in-meter" style="position:relative"><div class="in-fill" id="inFill"></div><div class="sweet-box" id="sweetBox" style="top:25px;height:25px"></div><div class="start-box" id="startBox" style="top:55px;height:20px"></div></div>
   <div class="sweet-label" id="sweetLbl">SWEET</div>
+  <div class="start-label" id="startLbl">START</div>
 </div>
 
 <div class="out-wrap">
@@ -244,7 +250,7 @@ svg.arc{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:non
 </div>
 
 <div class="brand">Ium Audio</div>
-<div class="ver">v1.0.9</div>
+<div class="ver">v1.1.0</div>
 <div class="elem">19 <b>K</b> 39.098</div>
 <div class="os-wrap"><div class="os-label">OVER</div><div class="os-btn on" data-os="Off">Off</div><div class="os-btn" data-os="2x">2x</div><div class="os-btn" data-os="4x">4x</div><div class="os-btn" data-os="8x">8x</div></div>
 <div class="scale-wrap"><div class="os-label">ZOOM</div><div class="scale-btn" data-scale="0.993">75</div><div class="scale-btn on" data-scale="1.324">100</div><div class="scale-btn" data-scale="1.655">125</div><div class="scale-btn" data-scale="2.648">200</div></div>
@@ -259,6 +265,7 @@ svg.arc{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:non
 var S={push:100,inputGain:0,limitGain:3,outGain:0,dark:0,bright:0,air:0,inPeak:-60,inSlow:-60,inFast:-60,outPeak:-60,sweet:false,compGR:0,limGR:0,phase:0,overMode:'4x',zoom:1.324,bp:{comp:false,drive:false,eq:false,stereo:false,limit:false,all:false},_dragging:false,_dragParam:'',_undoC:0,_redoC:0};
 var smooth={inPeak:-60,outPeak:-60,compGR:0,limGR:0};
 var dragTarget=null,dragStartY=0,dragStartX=0,dragVal=0;
+var pkOverTime=0,outOverTime=0;
 
 function lerp(a,b,t){return a+(b-a)*t;}
 function render(){
@@ -301,24 +308,42 @@ function render(){
   var pkVal=S.inFast||S.inPeak;
   document.getElementById('inNumPk').textContent=fmtDB(pkVal);
   var pkEl=document.getElementById('inNumPk');
-  if(pkVal>-6.3&&pkVal<-5.7)pkEl.style.color='#c080ff';      // -6 purple flash
-  else if(pkVal>-7&&pkVal<-5)pkEl.style.color='#e0c850';       // -6 yellow zone
-  else if(pkVal>-10.3&&pkVal<-9.7)pkEl.style.color='#40ff80';  // -10 green flash
-  else if(pkVal>-11&&pkVal<-9)pkEl.style.color='#4080e0';      // -10 blue zone
+  var now=Date.now();
+  if(pkVal>-0.05)pkOverTime=now;
+  if(now-pkOverTime<1000)pkEl.style.color='#ff4040';            // red 1s after over 0
+  else if(pkVal>-6.3&&pkVal<-5.7)pkEl.style.color='#c080ff';   // -6 purple flash
+  else if(pkVal>-7&&pkVal<-5)pkEl.style.color='#e0c850';        // -6 yellow zone
+  else if(pkVal>-10.3&&pkVal<-9.7)pkEl.style.color='#40ff80';   // -10 green flash
+  else if(pkVal>-11&&pkVal<-9)pkEl.style.color='#4080e0';       // -10 blue zone
   else pkEl.style.color='';
+  // Output peak red when over 0
+  if(S.outPeak>-0.05)outOverTime=now;
+  var opEl=document.getElementById('outNumPk');
+  opEl.style.color=(now-outOverTime<1000)?'#ff4040':'';
   // Sweet spot: continuous opacity, brightest at centre
   var sw=parseFloat(S.sweet)||0;
   var sb=document.getElementById('sweetBox');
   var sl=document.getElementById('sweetLbl');
   if(sw>0.05){sb.classList.add('on');sl.classList.add('on');sb.style.opacity=sw;sl.style.opacity=sw}
   else{sb.classList.remove('on');sl.classList.remove('on');sb.style.opacity='';sl.style.opacity=''}
+  // Start zone: -46 to -26dB (center -36dB), blue indicator
+  var startVal=smooth.inPeak;
+  var startBox=document.getElementById('startBox');
+  var startLbl=document.getElementById('startLbl');
+  if(startVal>-46&&startVal<-26){
+    var distFromCenter=Math.abs(startVal+36)/10;
+    var startOpacity=Math.max(.3,1-distFromCenter);
+    startBox.classList.add('on');startLbl.classList.add('on');
+    startBox.style.opacity=Math.min(1,startOpacity+.3);startLbl.style.opacity=Math.min(1,startOpacity+.3);
+  }else{startBox.classList.remove('on');startLbl.classList.remove('on');
+    startBox.style.opacity='';startLbl.style.opacity=''}
   document.getElementById('outFill').style.height=outH+'%';
   document.getElementById('outNumRMS').textContent=fmtDB(S.outPeak);
   document.getElementById('outNumPk').textContent=fmtDB(S.outPeak);
 
-  document.getElementById('darkF').style.width=(S.dark/6*100)+'%'; document.getElementById('darkV').textContent=S.dark.toFixed(1);
-  document.getElementById('brightF').style.width=(S.bright/6*100)+'%'; document.getElementById('brightVal').textContent=S.bright.toFixed(1);
-  document.getElementById('airF').style.width=(S.air/6*100)+'%'; document.getElementById('airVal').textContent=S.air.toFixed(1);
+  document.getElementById('darkF').style.width=(S.dark/3*100)+'%'; document.getElementById('darkV').textContent=S.dark.toFixed(1);
+  document.getElementById('brightF').style.width=(S.bright/3*100)+'%'; document.getElementById('brightVal').textContent=S.bright.toFixed(1);
+  document.getElementById('airF').style.width=(S.air/3*100)+'%'; document.getElementById('airVal').textContent=S.air.toFixed(1);
 
   document.getElementById('pushVal').textContent=Math.round(S.push);
 
@@ -364,7 +389,7 @@ window.addEventListener('mousemove',function(e){
   if(!dragTarget)return;
   var sens=0.5,delta;
   if(dragTarget==='push'){delta=-(e.clientY-dragStartY)*sens; S.push=Math.max(0,Math.min(200,Math.round(dragVal+delta)))}
-  else if(dragTarget[0]==='e'){var idx=parseInt(dragTarget[2]); delta=(e.clientX-dragStartX)*sens*0.1; S[eqKeys[idx]]=Math.max(0,Math.min(6,dragVal+delta))}
+  else if(dragTarget[0]==='e'){var idx=parseInt(dragTarget[2]); delta=(e.clientX-dragStartX)*sens*0.05; S[eqKeys[idx]]=Math.max(0,Math.min(3,dragVal+delta))}
   else if(dragTarget[0]==='k'){var idx=parseInt(dragTarget[4]); var rng=[[-12,12],[0,12],[-24,24]]; delta=-(e.clientY-dragStartY)*sens*0.1; S[knobKeys[idx]]=Math.max(rng[idx][0],Math.min(rng[idx][1],dragVal+delta))}
   render();bridgeNotify();
 });
@@ -441,7 +466,7 @@ document.getElementById('btnDJAnta').addEventListener('click',function(){
   function step(){
     // Fade canvas
     var hasSignal=(S.inSlow||-60)>-55;
-    ctx.fillStyle=hasSignal?'rgba(2,2,6,0.22)':'rgba(2,2,6,0.35)';
+    ctx.fillStyle=hasSignal?'rgba(2,2,6,0.18)':'rgba(2,2,6,0.35)';
     ctx.fillRect(0,0,W,H);
 
     // Get phase correlation & level
@@ -451,8 +476,13 @@ document.getElementById('btnDJAnta').addEventListener('click',function(){
 
     // Only spawn dots when signal present
     if(hasSignal){
-      var r=level*117; // radius 294/2 * 0.8
-      for(var i=0;i<8;i++){
+      var r=level*117;
+      // Purple diffusion glow layer below
+      ctx.beginPath();
+      ctx.arc(cx,cy,r*.6,0,Math.PI*2);
+      ctx.fillStyle='rgba(120,40,200,'+(level*.06).toFixed(3)+')';
+      ctx.fill();
+      for(var i=0;i<12;i++){
         // X (mid): stronger when corr→+1. Y (side): stronger when corr→-1
         var mx=(1+corr)*0.5, sx=(1-corr)*0.5;
         var dx=(Math.random()-.5)*2*r*Math.sqrt(mx+.15);

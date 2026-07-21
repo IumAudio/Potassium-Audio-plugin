@@ -86,17 +86,17 @@ public:
 
         // ── EQ ─────────────────────────────────────────────────────────────
         layout.add (std::make_unique<AudioParameterFloat> (ParamIDs::eqLowShelf, "Dark",
-                                                           NormalisableRange<float> (0.0f, 6.0f, 0.1f), 0.0f,
+                                                           NormalisableRange<float> (0.0f, 3.0f, 0.1f), 0.0f,
                                                            AudioParameterFloatAttributes{}
                                                                .withLabel ("dB")
                                                                .withCategory (AudioProcessorParameter::genericParameter)));
         layout.add (std::make_unique<AudioParameterFloat> (ParamIDs::density, "Bright",
-                                                           NormalisableRange<float> (0.0f, 6.0f, 0.1f), 0.0f,
+                                                           NormalisableRange<float> (0.0f, 3.0f, 0.1f), 0.0f,
                                                            AudioParameterFloatAttributes{}
                                                                .withLabel ("dB")
                                                                .withCategory (AudioProcessorParameter::genericParameter)));
         layout.add (std::make_unique<AudioParameterFloat> (ParamIDs::eqHighShelf, "Air",
-                                                           NormalisableRange<float> (0.0f, 6.0f, 0.1f), 0.0f,
+                                                           NormalisableRange<float> (0.0f, 3.0f, 0.1f), 0.0f,
                                                            AudioParameterFloatAttributes{}
                                                                .withLabel ("dB")
                                                                .withCategory (AudioProcessorParameter::genericParameter)));
@@ -334,6 +334,7 @@ private:
     OutputGainStage    outputGain;
 
     int prevOversamplingMode = -1;
+    int prevSatLatency = 0;
     double baseSampleRate = 44100.0;
 
     // ── Parameter attachments ──────────────────────────────────────────────
@@ -441,11 +442,13 @@ private:
 
         // Oversampling mode — recalc time/freq DSP for effective rate when mode changes
         int osMode = overModeParam->getIndex();
-        if (osMode != prevOversamplingMode)
+        int satLatency = saturator.getLatencySamples();
+        if (osMode != prevOversamplingMode || satLatency != prevSatLatency)
         {
             prevOversamplingMode = osMode;
+            prevSatLatency = satLatency;
             oversampling.setMode (osMode);
-            setLatencySamples (oversampling.getLatencySamples() + saturator.getLatencySamples());
+            setLatencySamples (oversampling.getLatencySamples() + satLatency);
         }
         // Keep limiter lookahead at the correct effective rate
         double effRate = baseSampleRate * oversampling.getCurrentFactor();

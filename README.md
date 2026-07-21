@@ -1,6 +1,6 @@
 # Potassium — 混音总线处理器
 
-[![Version](https://img.shields.io/badge/version-1.0.9-gold)](https://github.com/IumAudio/Potassium-Audio-plugin/releases)
+[![Version](https://img.shields.io/badge/version-1.1.0-gold)](https://github.com/IumAudio/Potassium-Audio-plugin/releases)
 [![Platform](https://img.shields.io/badge/platform-Windows%2010%2F11%20x64-blue)](https://github.com/IumAudio/Potassium-Audio-plugin/releases)
 [![Format](https://img.shields.io/badge/format-VST3-purple)](https://github.com/IumAudio/Potassium-Audio-plugin/releases)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
@@ -123,6 +123,15 @@ cmake --build /c/PotassiumBuild --config Release
 ---
 
 ## 更新日志
+
+### v1.1.0 (2026-07-20)
+- UI：粒子特效刷新频率与亮度大幅提升，底部增加紫色扩散光晕层
+- UI：电平条响应更快速，对瞬态峰值捕捉更敏锐
+- UI：甜点区间改为连续渐变亮度，越接近中心越亮，渐入渐出
+- UI：Peak 数值在 -10dB 附近渐蓝，命中 -10dB 瞬间变绿
+- UI：弧线上方底色加深，弧线下方金色辉光增强至底部，上下对比鲜明
+- 调整：EQ 三频段范围由 0~6dB 改为 0~3dB，控制更精细
+- 修复：延迟补偿随饱和器驱动状态动态更新，消除相位偏移
 
 ### v1.0.9 (2026-07-20)
 - UI：甜点区间改为渐变亮度——越接近中心越亮，渐入渐出

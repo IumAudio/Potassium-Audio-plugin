@@ -15,8 +15,8 @@ public:
         // Short-term RMS: 50ms window — reads close to peak but still averaged
         stRMSCoeff = 1.0 - std::exp(-Tb / 0.050);
 
-        // Bar + sweet-spot: 30ms smoothing on short-term RMS
-        meterSmoothCoeff = 1.0 - std::exp(-Tb / 0.030);
+        // Bar + sweet-spot: 15ms smoothing — more peak-responsive
+        meterSmoothCoeff = 1.0 - std::exp(-Tb / 0.015);
 
         // Slow display (top): asymmetric on short-term RMS — slower attack, slow release
         slowAttackCoeff  = 1.0 - std::exp(-Tb / 0.350);   // 350ms rise
