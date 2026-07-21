@@ -1,6 +1,6 @@
 # Potassium — 混音总线处理器
 
-[![Version](https://img.shields.io/badge/version-1.0.8-gold)](https://github.com/IumAudio/Potassium-Audio-plugin/releases)
+[![Version](https://img.shields.io/badge/version-1.0.9-gold)](https://github.com/IumAudio/Potassium-Audio-plugin/releases)
 [![Platform](https://img.shields.io/badge/platform-Windows%2010%2F11%20x64-blue)](https://github.com/IumAudio/Potassium-Audio-plugin/releases)
 [![Format](https://img.shields.io/badge/format-VST3-purple)](https://github.com/IumAudio/Potassium-Audio-plugin/releases)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
@@ -123,6 +123,12 @@ cmake --build /c/PotassiumBuild --config Release
 ---
 
 ## 更新日志
+
+### v1.0.9 (2026-07-20)
+- UI：甜点区间改为渐变亮度——越接近中心越亮，渐入渐出
+- UI：Peak 数值在 -10dB 附近渐变为蓝色，命中 -10dB 瞬间变绿，与 -6dB 黄紫体系互补
+- UI：弧线上方底色加深，弧线下方金色辉光增强，上下对比更鲜明
+- 文档：内置说明书补充 Peak -10dB 蓝绿色指示说明
 
 ### v1.0.8 (2026-07-18)
 - UI：顶部新增信息栏——插件名称、信号链、Manual 内置说明书与 DJAnta 外链按钮

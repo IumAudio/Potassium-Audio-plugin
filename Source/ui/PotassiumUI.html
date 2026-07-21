@@ -158,7 +158,7 @@ svg.arc{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:non
   <p>1. 从 <b>Kick</b> 开始独奏，调整输入增益使峰值电平落在 <b>-6dB</b> 附近</p>
   <p>2. 电平数值在 -6dB 左右会<b>亮黄或紫色</b>，以此作为参考</p>
   <p>3. 以 Kick 为基准逐轨平衡，最终总线的 RMS 电平控制在 <b>-6dB 附近</b></p>
-  <p>4. 甜点区间内插件响应最佳，电平数值变黄/紫色即为达到理想工作点</p>
+  <p>4. 甜点区间内插件响应最佳，RMS 数值变黄/紫色，Peak 数值在 -10dB 变蓝/绿色即为达到理想工作点</p>
   <h3>参数</h3>
   <p><b>Push</b> 0–200% 主控旋钮 · <b>Dark</b> 0–6dB 低频 · <b>Bright</b> 0–6dB 中频 · <b>Air</b> 0–6dB 高频</p>
   <p><b>Input</b> ±12dB · <b>Limit</b> 0–12dB · <b>Output</b> ±24dB · <b>Over</b> Off/2x/4x/8x</p>
@@ -181,14 +181,15 @@ svg.arc{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:non
 <svg class="arc" viewBox="0 0 680 380">
   <defs>
     <linearGradient id="arcUnder" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#c9a050" stop-opacity="0.18"/>
-      <stop offset="30%" stop-color="#c9a050" stop-opacity="0.12"/>
-      <stop offset="60%" stop-color="#7b5ea7" stop-opacity="0.05"/>
+      <stop offset="0%" stop-color="#d4b040" stop-opacity="0.22"/>
+      <stop offset="20%" stop-color="#d4b040" stop-opacity="0.16"/>
+      <stop offset="45%" stop-color="#c9a050" stop-opacity="0.08"/>
+      <stop offset="70%" stop-color="#7b5ea7" stop-opacity="0.04"/>
       <stop offset="100%" stop-color="transparent" stop-opacity="0"/>
     </linearGradient>
   </defs>
-  <!-- Area above arc: dark overlay, edge to edge -->
-  <path d="M0,210 Q340,70 680,210 L680,0 L0,0 Z" fill="#08080f" opacity="0.55"/>
+  <!-- Area above arc: darker overlay -->
+  <path d="M0,210 Q340,70 680,210 L680,0 L0,0 Z" fill="#040410" opacity="0.65"/>
   <!-- Area below arc: gold→purple glow, edge to edge -->
   <path d="M0,210 Q340,70 680,210 L680,380 L0,380 Z" fill="url(#arcUnder)"/>
   <!-- Arc line: edge to edge -->
@@ -243,7 +244,7 @@ svg.arc{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:non
 </div>
 
 <div class="brand">Ium Audio</div>
-<div class="ver">v1.0.8</div>
+<div class="ver">v1.0.9</div>
 <div class="elem">19 <b>K</b> 39.098</div>
 <div class="os-wrap"><div class="os-label">OVER</div><div class="os-btn on" data-os="Off">Off</div><div class="os-btn" data-os="2x">2x</div><div class="os-btn" data-os="4x">4x</div><div class="os-btn" data-os="8x">8x</div></div>
 <div class="scale-wrap"><div class="os-label">ZOOM</div><div class="scale-btn" data-scale="0.993">75</div><div class="scale-btn on" data-scale="1.324">100</div><div class="scale-btn" data-scale="1.655">125</div><div class="scale-btn" data-scale="2.648">200</div></div>
@@ -296,18 +297,24 @@ function render(){
   document.getElementById('inFill').style.height=inH+'%';
   document.getElementById('inNumRMS').textContent=fmtDB(rmsVal);
   document.getElementById('inNumRMS').style.color=rmsColor(rmsVal);
-  // Peak colour: near -6→yellow, hit -6→purple flash
+  // Peak colour: near -6→yellow/purple, near -10→blue/green
   var pkVal=S.inFast||S.inPeak;
   document.getElementById('inNumPk').textContent=fmtDB(pkVal);
-  if(pkVal>-6.3&&pkVal<-5.7){document.getElementById('inNumPk').style.color='#c080ff'}
-  else if(pkVal>-7&&pkVal<-5){document.getElementById('inNumPk').style.color='#e0c850'}
-  else{document.getElementById('inNumPk').style.color=''}
+  var pkEl=document.getElementById('inNumPk');
+  if(pkVal>-6.3&&pkVal<-5.7)pkEl.style.color='#c080ff';      // -6 purple flash
+  else if(pkVal>-7&&pkVal<-5)pkEl.style.color='#e0c850';       // -6 yellow zone
+  else if(pkVal>-10.3&&pkVal<-9.7)pkEl.style.color='#40ff80';  // -10 green flash
+  else if(pkVal>-11&&pkVal<-9)pkEl.style.color='#4080e0';      // -10 blue zone
+  else pkEl.style.color='';
+  // Sweet spot: continuous opacity, brightest at centre
+  var sw=parseFloat(S.sweet)||0;
+  var sb=document.getElementById('sweetBox');
+  var sl=document.getElementById('sweetLbl');
+  if(sw>0.05){sb.classList.add('on');sl.classList.add('on');sb.style.opacity=sw;sl.style.opacity=sw}
+  else{sb.classList.remove('on');sl.classList.remove('on');sb.style.opacity='';sl.style.opacity=''}
   document.getElementById('outFill').style.height=outH+'%';
   document.getElementById('outNumRMS').textContent=fmtDB(S.outPeak);
   document.getElementById('outNumPk').textContent=fmtDB(S.outPeak);
-
-  if(S.sweet){document.getElementById('sweetBox').classList.add('on');document.getElementById('sweetLbl').classList.add('on')}
-  else{document.getElementById('sweetBox').classList.remove('on');document.getElementById('sweetLbl').classList.remove('on')}
 
   document.getElementById('darkF').style.width=(S.dark/6*100)+'%'; document.getElementById('darkV').textContent=S.dark.toFixed(1);
   document.getElementById('brightF').style.width=(S.bright/6*100)+'%'; document.getElementById('brightVal').textContent=S.bright.toFixed(1);

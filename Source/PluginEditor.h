@@ -198,7 +198,7 @@ public:
            << "S.inSlow=" << juce::String(inSlow,1) << ";"
            << "S.inFast=" << juce::String(inFast,1) << ";"
            << "S.outPeak="<< juce::String(outPeak,1)<< ";"
-           << "S.sweet="  << (pv(ParamIDs::sweetSpot)>0.5f?"true":"false") << ";"
+           << "S.sweet="  << juce::String(pv(ParamIDs::sweetSpot),3) << ";"
            << "S.compGR=" << juce::String(compGR,1) << ";"
            << "S.limGR="  << juce::String(limGR,1) << ";"
            << "S.phase="  << juce::String(proc.getPhaseCorrelation(),3) << ";"
