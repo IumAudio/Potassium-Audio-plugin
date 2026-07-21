@@ -124,6 +124,17 @@ svg.arc{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:non
 .ctx-menu{position:absolute;display:none;z-index:99;background:var(--panel);border:1px solid var(--arc);border-radius:4px;padding:4px 0;min-width:120px;box-shadow:0 4px 12px rgba(0,0,0,.4)}
 .ctx-item{padding:6px 14px;font-size:10px;color:var(--dim);cursor:pointer;letter-spacing:1px;transition:all .12s}
 .ctx-item:hover{color:var(--white);background:rgba(201,160,80,.1)}
+/* ── Easter egg: KMnO₄ equation ────────────────────────────────────── */
+.ee-eq{position:absolute;left:92px;bottom:148px;font-size:7px;color:rgba(255,255,255,.08);cursor:pointer;letter-spacing:.5px;z-index:1;transition:color .3s}
+.ee-eq:hover{color:rgba(255,255,255,.35)}
+.ee-overlay{position:absolute;top:18px;left:0;right:0;bottom:0;background:rgba(2,2,8,.94);z-index:12;display:none;overflow-y:auto;padding:20px 24px;font-size:11px;line-height:1.8;color:var(--text)}
+.ee-overlay.show{display:block}
+.ee-overlay h2{color:var(--purple);font-size:15px;margin-bottom:10px;letter-spacing:2px}
+.ee-overlay h3{color:var(--accent);font-size:11px;margin:12px 0 4px}
+.ee-overlay p{color:var(--dim);margin:3px 0}
+.ee-overlay b{color:var(--white)}
+.ee-close{position:absolute;top:10px;right:16px;font-size:18px;color:var(--dim);cursor:pointer}
+.ee-close:hover{color:var(--white)}
 /* ── Top header bar ─────────────────────────────────────────────────── */
 .top-bar{position:absolute;top:0;left:0;right:0;height:18px;background:#000;z-index:100;display:flex;align-items:center;padding:0 10px;gap:8px;border-bottom:1px solid #808098}
 .top-name{font-size:12px;color:var(--white);font-weight:600;letter-spacing:2px;text-transform:uppercase;white-space:nowrap}
@@ -234,6 +245,24 @@ svg.arc{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:non
   <div class="gr-col"><span class="gr-name">Limit</span><div class="gr-track"><div class="gr-fill" id="limGF"></div></div><span class="gr-val" id="limGV">0.0</span></div>
 </div>
 
+<div class="ee-eq" id="eeEq">2KMnO₄ → K₂MnO₄ + MnO₂ + O₂↑</div>
+<div class="ee-overlay" id="eeOverlay">
+  <span class="ee-close" id="eeClose">&times;</span>
+  <h2>高锰酸钾制取氧气</h2>
+  <h3>化学方程式</h3>
+  <p><b>2KMnO₄</b> ══ <b>K₂MnO₄</b> + <b>MnO₂</b> + <b>O₂↑</b></p>
+  <h3>实验步骤</h3>
+  <p>1. 取少量高锰酸钾固体平铺于试管底部</p>
+  <p>2. 试管口塞一团棉花，防止粉末冲出</p>
+  <p>3. 用铁架台固定试管，管口略向下倾斜</p>
+  <p>4. 酒精灯加热，用排水法收集氧气</p>
+  <p>5. 实验结束先撤导管再熄灭酒精灯</p>
+  <h3>氧气验满</h3>
+  <p><b>带火星的木条</b>伸入集气瓶口——若<b>复燃</b>则已满</p>
+  <p>或将带火星木条靠近瓶口，观察是否<b>剧烈燃烧</b></p>
+  <h3>钾元素的发现</h3>
+  <p>1807 年汉弗莱·戴维电解熔融苛性钾首次制得金属钾。钾的焰色反应呈<b>紫色</b>（波长 766nm），这也是 Potassium 界面紫色的灵感来源。</p>
+</div>
 <div class="bottom">
   <div class="knob-wrap"><div class="knob-ring" id="inKnobR"><div class="knob-inner"><div class="knob-dot" id="inDot"></div></div></div><div class="knob-v" id="inKV">0.0</div><div class="knob-n">Input</div></div>
   <div class="knob-wrap"><div class="knob-ring" id="limKnobR"><div class="knob-inner"><div class="knob-dot" id="limDot"></div></div></div><div class="knob-v" id="limKV">3.0</div><div class="knob-n">Limit</div></div>
@@ -451,6 +480,14 @@ document.getElementById('btnManual').addEventListener('click',function(){
 document.getElementById('manualClose').addEventListener('click',function(){
   document.getElementById('manualOverlay').classList.remove('show');
 });
+// Easter egg: KMnO₄ equation
+document.getElementById('eeEq').addEventListener('click',function(){
+  document.getElementById('eeOverlay').classList.toggle('show');
+});
+document.getElementById('eeClose').addEventListener('click',function(){
+  document.getElementById('eeOverlay').classList.remove('show');
+});
+
 document.getElementById('btnDJAnta').addEventListener('click',function(){
   S._openURL='https://space.bilibili.com/3493259676486408';
 });
