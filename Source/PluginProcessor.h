@@ -117,7 +117,7 @@ public:
 
         // ── Oversampling ───────────────────────────────────────────────────
         layout.add (std::make_unique<AudioParameterChoice> (ParamIDs::overMode, "Oversampling",
-                                                             juce::StringArray { "Off", "2x", "4x", "8x" }, 2,
+                                                             juce::StringArray { "Off", "2x", "4x", "8x" }, 0,
                                                              AudioParameterChoiceAttributes{}
                                                                  .withCategory (AudioProcessorParameter::genericParameter)));
 
@@ -285,6 +285,9 @@ public:
     }
     float getCompressorGR() const noexcept { return compressor.getGR(); }
     float getPhaseCorrelation() const noexcept { return phaseCorrelation; }
+    int getRequiredLatencySamples() const noexcept {
+        return oversampling.getLatencySamples() + saturator.getLatencySamples();
+    }
 
     const juce::String getName() const override { return "Potassium"; }
     bool acceptsMidi() const override    { return false; }
@@ -440,15 +443,15 @@ private:
             outputGain.setGainDB (lastOutputGain);
         }
 
-        // Oversampling mode — recalc time/freq DSP for effective rate when mode changes
+        // ADAA always on — provides anti-aliasing regardless of OS mode
         int osMode = overModeParam->getIndex();
-        int satLatency = saturator.getLatencySamples();
-        if (osMode != prevOversamplingMode || satLatency != prevSatLatency)
+        saturator.setADAA(true);
+
+        // Oversampling mode tracking
+        if (osMode != prevOversamplingMode)
         {
             prevOversamplingMode = osMode;
-            prevSatLatency = satLatency;
             oversampling.setMode (osMode);
-            setLatencySamples (oversampling.getLatencySamples() + satLatency);
         }
         // Keep limiter lookahead at the correct effective rate
         double effRate = baseSampleRate * oversampling.getCurrentFactor();

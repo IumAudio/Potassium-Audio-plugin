@@ -37,6 +37,11 @@ public:
     void resized() override { wv->setBounds(getLocalBounds()); }
 
     void timerCallback() override {
+        // Update PDC from message thread (safe)
+        int needed = proc.getRequiredLatencySamples();
+        if (needed != proc.getLatencySamples())
+            proc.setLatencySamples(needed);
+
         if (loadDelay > 0) {
             if (--loadDelay == 0) {
                 wv->goToURL(juce::WebBrowserComponent::getResourceProviderRoot());

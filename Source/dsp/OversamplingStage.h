@@ -1,43 +1,57 @@
 #pragma once
 #include <juce_dsp/juce_dsp.h>
 
+/**
+ * Minimal oversampling wrapper — delegates entirely to JUCE's built-in
+ * polyphase IIR cascade. No custom filtering, no manual stages.
+ */
 class OversamplingStage
 {
 public:
     OversamplingStage()
-        : off (2, 1, juce::dsp::Oversampling<float>::filterHalfBandPolyphaseIIR, true, false),
-          os2x(2, 2, juce::dsp::Oversampling<float>::filterHalfBandPolyphaseIIR, true, false),
-          os4x(2, 4, juce::dsp::Oversampling<float>::filterHalfBandPolyphaseIIR, true, false),
-          os8x(2, 8, juce::dsp::Oversampling<float>::filterHalfBandPolyphaseIIR, true, false)
+        : os2x (2, 2, juce::dsp::Oversampling<float>::filterHalfBandPolyphaseIIR, true, false),
+          os4x (2, 4, juce::dsp::Oversampling<float>::filterHalfBandPolyphaseIIR, true, false),
+          os8x (2, 8, juce::dsp::Oversampling<float>::filterHalfBandPolyphaseIIR, true, false)
     {
-        oversamplers[0] = &off;
-        oversamplers[1] = &os2x;
-        oversamplers[2] = &os4x;
-        oversamplers[3] = &os8x;
-        setMode(2); // default 4x
+        setMode(0); // default Off — ADAA handles anti-aliasing
     }
 
     void prepare(juce::dsp::ProcessSpec& spec) {
-        for (auto* os : oversamplers) { os->initProcessing(spec.maximumBlockSize); os->reset(); }
+        os2x.initProcessing(spec.maximumBlockSize);
+        os4x.initProcessing(spec.maximumBlockSize);
+        os8x.initProcessing(spec.maximumBlockSize);
     }
-    void reset() { for (auto* os : oversamplers) os->reset(); }
+    void reset() { os2x.reset(); os4x.reset(); os8x.reset(); }
+
     void setMode(int m) { currentMode = juce::jlimit(0, 3, m); }
-    int getMode() const noexcept { return currentMode; }
+    int  getMode() const noexcept { return currentMode; }
+
     int getLatencySamples() const noexcept {
-        return currentMode == 0 ? 0 : oversamplers[currentMode]->getLatencyInSamples();
+        if (currentMode == 0) return 0;
+        auto* os = (currentMode == 1) ? &os2x : (currentMode == 2) ? &os4x : &os8x;
+        return os->getLatencyInSamples();
     }
-    int getCurrentFactor() const noexcept { static const int f[]={1,2,4,8}; return f[currentMode]; }
+
+    int getCurrentFactor() const noexcept {
+        static constexpr int f[] = {1, 2, 4, 8};
+        return f[currentMode];
+    }
 
     juce::dsp::AudioBlock<float> processSamplesUp(juce::dsp::AudioBlock<float>& block) {
-        return (currentMode == 0) ? block : oversamplers[currentMode]->processSamplesUp(block);
+        if (currentMode == 0) return block;
+        auto* os = (currentMode == 1) ? &os2x : (currentMode == 2) ? &os4x : &os8x;
+        return os->processSamplesUp(block);
     }
+
     void processSamplesDown(juce::dsp::AudioBlock<float>& block) {
-        if (currentMode != 0) oversamplers[currentMode]->processSamplesDown(block);
+        if (currentMode == 0) return;
+        auto* os = (currentMode == 1) ? &os2x : (currentMode == 2) ? &os4x : &os8x;
+        os->processSamplesDown(block);
     }
 
 private:
-    juce::dsp::Oversampling<float> off, os2x, os4x, os8x;
-    juce::dsp::Oversampling<float>* oversamplers[4];
+    juce::dsp::Oversampling<float> os2x, os4x, os8x;
     int currentMode = 2;
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(OversamplingStage)
 };

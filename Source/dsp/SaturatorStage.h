@@ -16,11 +16,12 @@ public:
     SaturatorStage() = default;
     void prepare(double, int) {}
     void reset() { prevL = prevR = 0.0; prevInL = prevInR = 0.0; }
-    int getLatencySamples() const noexcept { return (intensity > 0.001f) ? 1 : 0; }
+    int getLatencySamples() const noexcept { return (useADAA && intensity > 0.001f) ? 1 : 0; }
 
     /** 0=off, 1=max drive */
     void setDrive(float d)     { intensity = d; }
-    void setCharacter(float)   {}  // unused — merged into single Drive
+    void setADAA(bool on)      { useADAA = on; }
+    void setCharacter(float)   {}  // unused
     void setTrim(float dB)     { trimLin = std::pow(10.0f, dB / 20.0f); }
 
     void process(juce::dsp::AudioBlock<float>& block) {
@@ -62,6 +63,7 @@ public:
 
 private:
     double intensity = 0.0, trimLin = 1.0;
+    bool useADAA = true;
     double prevL = 0.0, prevR = 0.0;
     double prevInL = 0.0, prevInR = 0.0;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SaturatorStage)

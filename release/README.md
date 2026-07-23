@@ -1,6 +1,6 @@
 # Potassium — 混音总线处理器
 
-[![Version](https://img.shields.io/badge/version-1.1.0-gold)](https://github.com/IumAudio/Potassium-Audio-plugin/releases)
+[![Version](https://img.shields.io/badge/version-1.1.1-gold)](https://github.com/IumAudio/Potassium-Audio-plugin/releases)
 [![Platform](https://img.shields.io/badge/platform-Windows%2010%2F11%20x64-blue)](https://github.com/IumAudio/Potassium-Audio-plugin/releases)
 [![Format](https://img.shields.io/badge/format-VST3-purple)](https://github.com/IumAudio/Potassium-Audio-plugin/releases)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
@@ -133,6 +133,11 @@ cmake --build /c/PotassiumBuild --config Release
 ---
 
 ## 更新日志
+
+### v1.1.1 (2026-07-22)
+- 修复：过采样架构重构，PDC 从消息线程安全更新，消除音频线程调用 setLatencySamples 导致的失真
+- 调整：过采样默认关闭，ADAA 抗混叠始终开启作为主要抗混叠方案
+- 新增：Start 区间指示器（电平条中央，蓝色），Sweet 区间改为连续渐变亮度
 
 ### v1.1.0 (2026-07-20)
 - UI：粒子特效刷新频率与亮度大幅提升，底部增加紫色扩散光晕层
